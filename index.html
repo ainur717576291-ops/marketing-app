@@ -220,7 +220,7 @@
         <div><label>Расход, ₸</label><input type="number" id="eSpend" placeholder="0"></div>
         <div><label>Клики</label><input type="number" id="eClicks" placeholder="0"></div>
         <div><label>Регистрации</label><input type="number" id="eReg" placeholder="0"></div>
-        <div><label>Досидели до эфира</label><input type="number" id="eAttend" placeholder="0"></div>
+        <div><label>Досидели до эфира <span style="font-weight:400">(если не Бизон)</span></label><input type="number" id="eAttend" placeholder="0"></div>
       </div>
       <label>Доп.продажи (апсейл), шт</label>
       <input type="number" id="eUpsell" placeholder="0">
@@ -267,6 +267,7 @@ const FUNNELS = ["Вебинар","Интенсив","Аденоиды","Вре�
 /* Покупки и выручка берутся АВТОМАТИЧЕСКИ из данных отдела продаж (sales-crm), не вводятся вручную.
    Сопоставление: продукт из таблицы продаж → воронка маркетинга. Подтверждено Айнурой 2026-08-12. */
 const SALES_JSON_URL = "https://ainur717576291-ops.github.io/sales-crm/sales-data.json";
+const BIZON_JSON_URL = "./bizon-data.json";
 function mapProductToFunnel(product){
   product = String(product||"");
   if(product==="Стандарт" || product==="С куратором индивидуально") return "Вебинар";
@@ -286,6 +287,8 @@ function mondayOf(dateStr){
 let DB = { entries: [], changes: [] };
 let SALES_RAW = {};      // { funnel: [{date, amount}, ...] } — сырые продажи, группируются на лету
 let SALES_LOADED = false;
+let BIZON_AGG = {};      // { funnel: { weekStart: {attended} } } — из Бизон365, уже по неделям
+let BIZON_LOADED = false;
 let CUR_FUNNEL = FUNNELS[0];
 let GRAN = 'week';       // 'day' | 'week' | 'month' — текущая детализация
 
@@ -324,7 +327,8 @@ function loadData(){
     })
     .catch(()=>{});
   const p2 = loadSales();
-  Promise.all([p1,p2]).then(renderAll).catch(renderAll);
+  const p3 = loadBizon();
+  Promise.all([p1,p2,p3]).then(renderAll).catch(renderAll);
 }
 function persist(){
   return fetch(SUPA_URL+"/rest/v1/students?name=eq."+ROW_NAME,
@@ -349,6 +353,13 @@ function loadSales(){
     .catch(()=>{ SALES_LOADED = false; });
 }
 
+function loadBizon(){
+  return fetch(BIZON_JSON_URL, {cache:"no-store"})
+    .then(r=>r.json())
+    .then(j=>{ BIZON_AGG = j.raw || {}; BIZON_LOADED = true; })
+    .catch(()=>{ BIZON_LOADED = false; });
+}
+
 /* Ключ группировки в зависимости от текущей детализации (день/неделя/месяц) */
 function bucketKey(dateStr, gran){
   gran = gran || GRAN;
@@ -371,21 +382,28 @@ function bucketLabel(key, gran){
 function combinedFor(funnel, gran){
   gran = gran || GRAN;
   const map = {};
+  function blank(k){ return {funnel, date:k, platform:"—", spend:0, clicks:0, registrations:0, attended:0, attendedAuto:false, downstream:0, purchases:0, revenue:0}; }
   DB.entries.filter(e=>e.funnel===funnel).forEach(e=>{
     const k = bucketKey(e.date, gran);
-    if(!map[k]) map[k] = {funnel, date:k, platform:e.platform, spend:0, clicks:0, registrations:0, attended:0, downstream:0, purchases:0, revenue:0};
+    if(!map[k]) map[k] = blank(k);
     map[k].spend += Number(e.spend)||0;
     map[k].clicks += Number(e.clicks)||0;
     map[k].registrations += Number(e.registrations)||0;
-    map[k].attended += Number(e.attended)||0;
     map[k].downstream += Number(e.downstream)||0;
-    if(e.platform && e.platform!==map[k].platform) map[k].platform = "Разные";
+    if(!map[k].attendedAuto) map[k].attended += Number(e.attended)||0; // ручное — только пока нет авто (Бизон)
+    if(e.platform) map[k].platform = (map[k].platform!=="—" && map[k].platform!==e.platform) ? "Разные" : e.platform;
   });
   (SALES_RAW[funnel]||[]).forEach(row=>{
     const k = bucketKey(row.date, gran);
-    if(!map[k]) map[k] = {funnel, date:k, platform:"—", spend:0, clicks:0, registrations:0, attended:0, downstream:0, purchases:0, revenue:0};
+    if(!map[k]) map[k] = blank(k);
     map[k].purchases += 1;
     map[k].revenue += row.amount;
+  });
+  (BIZON_AGG[funnel]||[]).forEach(row=>{
+    const k = bucketKey(row.date, gran);
+    if(!map[k]) map[k] = blank(k);
+    if(!map[k].attendedAuto){ map[k].attended = 0; map[k].attendedAuto = true; } // первый авто-ряд — сбросить ручное
+    map[k].attended += Number(row.attended)||0;
   });
   return Object.values(map).sort((a,b)=>a.date<b.date?-1:1);
 }
