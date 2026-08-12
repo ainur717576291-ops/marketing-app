@@ -138,6 +138,12 @@
     <p>Лиды и реклама по всем воронкам — где деньги и что пошло не так</p>
   </div>
 
+  <div class="funnel-tabs" id="granTabs" style="justify-content:center">
+    <button data-g="day" onclick="setGran('day')">По дням</button>
+    <button data-g="week" class="active" onclick="setGran('week')">По неделям</button>
+    <button data-g="month" onclick="setGran('month')">По месяцам</button>
+  </div>
+
   <!-- ================= ОБЗОР ================= -->
   <div class="view active" id="view-overview">
     <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px">
@@ -278,9 +284,10 @@ function mondayOf(dateStr){
 }
 
 let DB = { entries: [], changes: [] };
-let SALES_AGG = {};      // { funnel: { weekStart: {purchases, revenue} } }
+let SALES_RAW = {};      // { funnel: [{date, amount}, ...] } — сырые продажи, группируются на лету
 let SALES_LOADED = false;
 let CUR_FUNNEL = FUNNELS[0];
+let GRAN = 'week';       // 'day' | 'week' | 'month' — текущая детализация
 
 /* ---------------- PIN ---------------- */
 function checkPin(){
@@ -330,39 +337,63 @@ function loadSales(){
   return fetch(SALES_JSON_URL, {cache:"no-store"})
     .then(r=>r.json())
     .then(j=>{
-      const agg = {};
+      const raw = {};
       (j.sales_rows||[]).forEach(row=>{
         const funnel = mapProductToFunnel(row.product);
         if(!funnel || !row.date) return;
-        const wk = mondayOf(row.date);
-        if(!agg[funnel]) agg[funnel]={};
-        if(!agg[funnel][wk]) agg[funnel][wk]={purchases:0, revenue:0};
-        agg[funnel][wk].purchases += 1;
-        agg[funnel][wk].revenue += Number(row.amount)||0;
+        if(!raw[funnel]) raw[funnel]=[];
+        raw[funnel].push({date:row.date, amount:Number(row.amount)||0});
       });
-      SALES_AGG = agg; SALES_LOADED = true;
+      SALES_RAW = raw; SALES_LOADED = true;
     })
     .catch(()=>{ SALES_LOADED = false; });
 }
 
-/* Объединяет ручные записи (расход/клики/регистрации/досидели/доп.продажи) по неделям
-   с автоматическими покупками/выручкой из отдела продаж — по каждой воронке. */
-function combinedFor(funnel){
+/* Ключ группировки в зависимости от текущей детализации (день/неделя/месяц) */
+function bucketKey(dateStr, gran){
+  gran = gran || GRAN;
+  if(gran==='day') return dateStr;
+  if(gran==='month') return dateStr.slice(0,7);
+  return mondayOf(dateStr);
+}
+function bucketLabel(key, gran){
+  gran = gran || GRAN;
+  if(gran==='day') return key.slice(8,10)+"."+key.slice(5,7);
+  if(gran==='month'){
+    const MN=["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
+    return MN[Number(key.slice(5,7))-1]+" "+key.slice(0,4);
+  }
+  return "с "+key.slice(8,10)+"."+key.slice(5,7);
+}
+
+/* Объединяет ручные записи (расход/клики/регистрации/досидели/доп.продажи)
+   с автоматическими покупками/выручкой из отдела продаж — по выбранной детализации. */
+function combinedFor(funnel, gran){
+  gran = gran || GRAN;
   const map = {};
   DB.entries.filter(e=>e.funnel===funnel).forEach(e=>{
-    map[e.date] = Object.assign({purchases:0, revenue:0}, e);
+    const k = bucketKey(e.date, gran);
+    if(!map[k]) map[k] = {funnel, date:k, platform:e.platform, spend:0, clicks:0, registrations:0, attended:0, downstream:0, purchases:0, revenue:0};
+    map[k].spend += Number(e.spend)||0;
+    map[k].clicks += Number(e.clicks)||0;
+    map[k].registrations += Number(e.registrations)||0;
+    map[k].attended += Number(e.attended)||0;
+    map[k].downstream += Number(e.downstream)||0;
+    if(e.platform && e.platform!==map[k].platform) map[k].platform = "Разные";
   });
-  const agg = SALES_AGG[funnel] || {};
-  Object.keys(agg).forEach(wk=>{
-    if(!map[wk]) map[wk] = {funnel, date:wk, platform:"—", spend:0, clicks:0, registrations:0, attended:0, downstream:0, purchases:0, revenue:0};
-    map[wk].purchases = agg[wk].purchases;
-    map[wk].revenue = agg[wk].revenue;
+  (SALES_RAW[funnel]||[]).forEach(row=>{
+    const k = bucketKey(row.date, gran);
+    if(!map[k]) map[k] = {funnel, date:k, platform:"—", spend:0, clicks:0, registrations:0, attended:0, downstream:0, purchases:0, revenue:0};
+    map[k].purchases += 1;
+    map[k].revenue += row.amount;
   });
   return Object.values(map).sort((a,b)=>a.date<b.date?-1:1);
 }
 
 /* ---------------- НАВИГАЦИЯ ---------------- */
+let CUR_VIEW = 'overview';
 function showView(v){
+  CUR_VIEW = v;
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('#tabbar button').forEach(b=>b.classList.toggle('active', b.dataset.v===v));
@@ -370,6 +401,12 @@ function showView(v){
   if(v==='funnels') renderFunnelView();
   if(v==='log') renderLog();
   window.scrollTo(0,0);
+}
+function setGran(g){
+  GRAN = g;
+  document.querySelectorAll('#granTabs button').forEach(b=>b.classList.toggle('active', b.dataset.g===g));
+  if(CUR_VIEW==='overview') renderOverview();
+  if(CUR_VIEW==='funnels') renderFunnelView();
 }
 
 function boot(){
@@ -502,7 +539,7 @@ function renderFunnelView(){
   let rows = arr.slice().reverse().map(e=>{
     const cpl = e.registrations>0 ? Math.round(e.spend/e.registrations) : 0;
     const roas = e.spend>0 ? (e.revenue/e.spend).toFixed(2) : '0.00';
-    return `<tr><td>${e.date}</td><td>${platBadge(e.platform)}</td><td>${fmt(e.spend)}</td><td>${fmt(e.clicks)}</td><td>${fmt(e.registrations)}</td><td>${fmt(e.attended)}</td><td>${fmt(e.purchases)}</td><td>${fmt(e.downstream)}</td><td>${fmt(e.revenue)}</td><td>${fmt(cpl)}</td><td>×${roas}</td></tr>`;
+    return `<tr><td>${bucketLabel(e.date)}</td><td>${platBadge(e.platform)}</td><td>${fmt(e.spend)}</td><td>${fmt(e.clicks)}</td><td>${fmt(e.registrations)}</td><td>${fmt(e.attended)}</td><td>${fmt(e.purchases)}</td><td>${fmt(e.downstream)}</td><td>${fmt(e.revenue)}</td><td>${fmt(cpl)}</td><td>×${roas}</td></tr>`;
   }).join('');
   document.getElementById('fn-table').innerHTML = `
     <thead><tr><th>Дата</th><th>Плат.</th><th>Расход</th><th>Клики</th><th>Рег.</th><th>Досид.</th><th>Покуп.</th><th>Доп.</th><th>Выручка</th><th>CPL</th><th>ROAS</th></tr></thead>
@@ -546,7 +583,7 @@ function buildTrendChart(arr){
   });
 
   let axisLabels='';
-  arr.forEach((e,i)=>{ if(i%Math.ceil(arr.length/6||1)===0){ const x=PAD+i*stepX; axisLabels += `<text x="${x}" y="${H-4}" font-size="9" fill="#5f6b88" text-anchor="middle">${e.date.slice(5)}</text>`; } });
+  arr.forEach((e,i)=>{ if(i%Math.ceil(arr.length/6||1)===0){ const x=PAD+i*stepX; axisLabels += `<text x="${x}" y="${H-4}" font-size="9" fill="#5f6b88" text-anchor="middle">${bucketLabel(e.date)}</text>`; } });
 
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
     ${marks}
