@@ -272,11 +272,16 @@ function mapProductToFunnel(product){
   if(product==="Наставничество / детская ортодонтия с нуля") return "Детская ортодонтия";
   return null; // «Интенсив для врачей» — новый продукт, запуск на след. неделе, пока нет данных
 }
+/* Локальная дата в формате YYYY-MM-DD — НЕ toISOString (та переводит в UTC и может
+   сдвинуть дату на день назад/вперёд в зависимости от часового пояса браузера). */
+function ymdLocal(d){
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
 function mondayOf(dateStr){
   const d = new Date(dateStr+"T00:00:00");
   const day = (d.getDay()+6)%7;
   d.setDate(d.getDate()-day);
-  return d.toISOString().slice(0,10);
+  return ymdLocal(d);
 }
 
 let DB = { entries: [], changes: [] };
@@ -286,7 +291,7 @@ let BIZON_AGG = {};      // { funnel: { weekStart: {attended} } } — из Би�
 let BIZON_LOADED = false;
 let CUR_FUNNEL = FUNNELS[0];
 let GRAN = 'week';       // 'day' | 'week' | 'month' — текущая детализация
-let CURSOR = new Date().toISOString().slice(0,10); // выбранный конкретный день/неделя/месяц (любая дата внутри него)
+let CURSOR = ymdLocal(new Date()); // выбранный конкретный день/неделя/месяц (любая дата внутри него)
 
 /* ---------------- PIN ---------------- */
 function checkPin(){
@@ -395,7 +400,7 @@ function shiftCursor(dir){
   if(GRAN==='day') d.setDate(d.getDate()+dir);
   else if(GRAN==='month') d.setMonth(d.getMonth()+dir);
   else d.setDate(d.getDate()+dir*7);
-  CURSOR = d.toISOString().slice(0,10);
+  CURSOR = ymdLocal(d);
   renderCursorLabel();
   if(CUR_VIEW==='overview') renderOverview();
   if(CUR_VIEW==='funnels') renderFunnelView();
@@ -471,7 +476,7 @@ function boot(){
     b.onclick=()=>{ CUR_FUNNEL=f; document.querySelectorAll('#funnelTabs button').forEach(x=>x.classList.toggle('active',x.dataset.f===f)); renderFunnelView(); };
     ft.appendChild(b);
   });
-  const today=new Date().toISOString().slice(0,10);
+  const today=ymdLocal(new Date());
   document.getElementById('eDate').value=today;
   document.getElementById('cDate').value=today;
   loadData();
