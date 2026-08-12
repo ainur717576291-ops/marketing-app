@@ -154,6 +154,7 @@
 
     <div class="card">
       <div class="sec-title">💰 Откуда реально идут деньги</div>
+      <div style="font-size:11px; color:var(--muted); margin:-6px 0 10px">Покупки и выручка — автоматически из отдела продаж</div>
       <div id="ov-rank"></div>
     </div>
 
@@ -214,11 +215,10 @@
         <div><label>Клики</label><input type="number" id="eClicks" placeholder="0"></div>
         <div><label>Регистрации</label><input type="number" id="eReg" placeholder="0"></div>
         <div><label>Досидели до эфира</label><input type="number" id="eAttend" placeholder="0"></div>
-        <div><label>Покупки, шт</label><input type="number" id="ePurch" placeholder="0"></div>
-        <div><label>Доп.продажи, шт</label><input type="number" id="eUpsell" placeholder="0"></div>
       </div>
-      <label>Выручка за период, ₸</label>
-      <input type="number" id="eRevenue" placeholder="0">
+      <label>Доп.продажи (апсейл), шт</label>
+      <input type="number" id="eUpsell" placeholder="0">
+      <div class="msg" style="text-align:left; color:var(--muted)">Покупки и выручка считаются сами из отдела продаж — вводить не нужно.</div>
       <button class="btn" onclick="saveEntry()">Сохранить запись</button>
       <div class="msg" id="eMsg"></div>
     </div>
@@ -258,7 +258,28 @@ function sbHeaders(extra){ return Object.assign({"apikey":SUPA_KEY,"Authorizatio
 
 const FUNNELS = ["Вебинар","Интенсив","Аденоиды","Вредная привычка","Детская ортодонтия","Интенсив для врачей"];
 
+/* Покупки и выручка берутся АВТОМАТИЧЕСКИ из данных отдела продаж (sales-crm), не вводятся вручную.
+   Сопоставление: продукт из таблицы продаж → воронка маркетинга. Подтверждено Айнурой 2026-08-12. */
+const SALES_JSON_URL = "https://ainur717576291-ops.github.io/sales-crm/sales-data.json";
+function mapProductToFunnel(product){
+  product = String(product||"");
+  if(product==="Стандарт" || product==="С куратором индивидуально") return "Вебинар";
+  if(product==="Интенсив") return "Интенсив";
+  if(product==="Аденоиды") return "Аденоиды";
+  if(product.indexOf("Вредные привычки")===0) return "Вредная привычка";
+  if(product==="Наставничество / детская ортодонтия с нуля") return "Детская ортодонтия";
+  return null; // «Интенсив для врачей» — новый продукт, запуск на след. неделе, пока нет данных
+}
+function mondayOf(dateStr){
+  const d = new Date(dateStr+"T00:00:00");
+  const day = (d.getDay()+6)%7;
+  d.setDate(d.getDate()-day);
+  return d.toISOString().slice(0,10);
+}
+
 let DB = { entries: [], changes: [] };
+let SALES_AGG = {};      // { funnel: { weekStart: {purchases, revenue} } }
+let SALES_LOADED = false;
 let CUR_FUNNEL = FUNNELS[0];
 
 /* ---------------- PIN ---------------- */
@@ -283,20 +304,20 @@ if(sessionStorage.getItem('mkt_pin_ok')==='1'){
 
 /* ---------------- ЗАГРУЗКА / СОХРАНЕНИЕ ---------------- */
 function loadData(){
-  fetch(SUPA_URL+"/rest/v1/students?name=eq."+ROW_NAME+"&select=notes",{headers:sbHeaders()})
+  const p1 = fetch(SUPA_URL+"/rest/v1/students?name=eq."+ROW_NAME+"&select=notes",{headers:sbHeaders()})
     .then(r=>r.json())
     .then(rows=>{
       if(rows && rows.length){
         try{ const j=JSON.parse(rows[0].notes||"{}"); DB.entries=j.entries||[]; DB.changes=j.changes||[]; }catch(e){}
-        renderAll();
       } else {
         // строки ещё нет — создаём
-        fetch(SUPA_URL+"/rest/v1/students",{method:"POST",headers:sbHeaders({"Prefer":"return=minimal"}),
-          body:JSON.stringify({name:ROW_NAME, curator:null, notes:JSON.stringify({entries:[],changes:[]})})})
-          .then(()=>renderAll());
+        return fetch(SUPA_URL+"/rest/v1/students",{method:"POST",headers:sbHeaders({"Prefer":"return=minimal"}),
+          body:JSON.stringify({name:ROW_NAME, curator:null, notes:JSON.stringify({entries:[],changes:[]})})});
       }
     })
-    .catch(()=>{ renderAll(); });
+    .catch(()=>{});
+  const p2 = loadSales();
+  Promise.all([p1,p2]).then(renderAll).catch(renderAll);
 }
 function persist(){
   return fetch(SUPA_URL+"/rest/v1/students?name=eq."+ROW_NAME,
@@ -304,6 +325,41 @@ function persist(){
      body: JSON.stringify({notes: JSON.stringify({entries:DB.entries, changes:DB.changes})})});
 }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+function loadSales(){
+  return fetch(SALES_JSON_URL, {cache:"no-store"})
+    .then(r=>r.json())
+    .then(j=>{
+      const agg = {};
+      (j.sales_rows||[]).forEach(row=>{
+        const funnel = mapProductToFunnel(row.product);
+        if(!funnel || !row.date) return;
+        const wk = mondayOf(row.date);
+        if(!agg[funnel]) agg[funnel]={};
+        if(!agg[funnel][wk]) agg[funnel][wk]={purchases:0, revenue:0};
+        agg[funnel][wk].purchases += 1;
+        agg[funnel][wk].revenue += Number(row.amount)||0;
+      });
+      SALES_AGG = agg; SALES_LOADED = true;
+    })
+    .catch(()=>{ SALES_LOADED = false; });
+}
+
+/* Объединяет ручные записи (расход/клики/регистрации/досидели/доп.продажи) по неделям
+   с автоматическими покупками/выручкой из отдела продаж — по каждой воронке. */
+function combinedFor(funnel){
+  const map = {};
+  DB.entries.filter(e=>e.funnel===funnel).forEach(e=>{
+    map[e.date] = Object.assign({purchases:0, revenue:0}, e);
+  });
+  const agg = SALES_AGG[funnel] || {};
+  Object.keys(agg).forEach(wk=>{
+    if(!map[wk]) map[wk] = {funnel, date:wk, platform:"—", spend:0, clicks:0, registrations:0, attended:0, downstream:0, purchases:0, revenue:0};
+    map[wk].purchases = agg[wk].purchases;
+    map[wk].revenue = agg[wk].revenue;
+  });
+  return Object.values(map).sort((a,b)=>a.date<b.date?-1:1);
+}
 
 /* ---------------- НАВИГАЦИЯ ---------------- */
 function showView(v){
@@ -342,16 +398,18 @@ function renderAll(){ renderOverview(); renderFunnelView(); renderLog(); }
 /* ---------------- ПОМОЩНИКИ ---------------- */
 function fmt(n){ n=Number(n)||0; return n.toLocaleString('ru-RU'); }
 function daysAgo(dateStr){ return (Date.now()-new Date(dateStr).getTime())/86400000; }
-function entriesFor(funnel){ return DB.entries.filter(e=>e.funnel===funnel).sort((a,b)=>a.date<b.date?-1:1); }
+function entriesFor(funnel){ return combinedFor(funnel); }
 function sumField(arr,f){ return arr.reduce((s,e)=>s+(Number(e[f])||0),0); }
 function rate(a,b){ return b>0 ? a/b : 0; }
 function pct(x){ return (x*100).toFixed(1)+"%"; }
 
 /* ---------------- ОБЗОР ---------------- */
+function allCombined(){ return FUNNELS.reduce((acc,f)=>acc.concat(combinedFor(f)),[]); }
+
 function renderOverview(){
   const filt = document.getElementById('periodFilter') ? document.getElementById('periodFilter').value : '90';
   const maxDays = filt==='all' ? Infinity : Number(filt);
-  const inRange = DB.entries.filter(e=> maxDays===Infinity || daysAgo(e.date) <= maxDays);
+  const inRange = allCombined().filter(e=> maxDays===Infinity || daysAgo(e.date) <= maxDays);
 
   const totalSpend = sumField(inRange,'spend');
   const totalRevenue = sumField(inRange,'revenue');
@@ -521,16 +579,17 @@ function saveEntry(){
     clicks: Number(document.getElementById('eClicks').value)||0,
     registrations: Number(document.getElementById('eReg').value)||0,
     attended: Number(document.getElementById('eAttend').value)||0,
-    purchases: Number(document.getElementById('ePurch').value)||0,
     downstream: Number(document.getElementById('eUpsell').value)||0,
-    revenue: Number(document.getElementById('eRevenue').value)||0,
   };
   if(!e.date){ msgFor('eMsg','Укажите дату', true); return; }
-  DB.entries.push(e);
+  // если запись за эту неделю уже есть — обновляем, а не дублируем
+  const existingIdx = DB.entries.findIndex(x=>x.funnel===e.funnel && x.date===e.date);
+  if(existingIdx>=0) DB.entries[existingIdx] = Object.assign({}, DB.entries[existingIdx], e);
+  else DB.entries.push(e);
   const msgEl=document.getElementById('eMsg'); msgEl.textContent='Сохраняю…'; msgEl.className='msg';
   persist().then(()=>{
     msgFor('eMsg','Сохранено ✓', false);
-    ['eSpend','eClicks','eReg','eAttend','ePurch','eUpsell','eRevenue'].forEach(id=>document.getElementById(id).value='');
+    ['eSpend','eClicks','eReg','eAttend','eUpsell'].forEach(id=>document.getElementById(id).value='');
     renderAll();
   }).catch(()=>msgFor('eMsg','Ошибка сохранения, попробуйте ещё раз', true));
 }
