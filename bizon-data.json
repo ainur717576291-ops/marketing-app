@@ -1,0 +1,789 @@
+{
+  "generated_at": "2026-08-12T09:15:50.185815Z",
+  "source": "Bizon365 API (webinars/reports/getlist), агрегировано по неделям",
+  "note": "attended = сумма 'Единовременный максимум зрителей' по всем сеансам недели (прокси посещаемости); регистрации НЕ доступны — в Бизон365 не настроены страницы регистрации",
+  "total_sessions_seen": 1277,
+  "unmapped_sessions": 80,
+  "agg": {
+    "Вредная привычка": {
+      "2026-08-10": {
+        "attended": 10,
+        "sessions": 1
+      },
+      "2026-07-20": {
+        "attended": 1,
+        "sessions": 1
+      },
+      "2026-07-06": {
+        "attended": 12,
+        "sessions": 1
+      },
+      "2026-06-15": {
+        "attended": 16,
+        "sessions": 1
+      },
+      "2026-05-25": {
+        "attended": 27,
+        "sessions": 1
+      },
+      "2026-05-11": {
+        "attended": 45,
+        "sessions": 2
+      },
+      "2025-06-30": {
+        "attended": 35,
+        "sessions": 1
+      },
+      "2025-05-19": {
+        "attended": 52,
+        "sessions": 1
+      }
+    },
+    "Вебинар": {
+      "2026-08-10": {
+        "attended": 0,
+        "sessions": 3
+      },
+      "2026-08-03": {
+        "attended": 121,
+        "sessions": 6
+      },
+      "2026-07-27": {
+        "attended": 159,
+        "sessions": 6
+      },
+      "2026-07-20": {
+        "attended": 75,
+        "sessions": 6
+      },
+      "2026-07-13": {
+        "attended": 85,
+        "sessions": 5
+      },
+      "2026-07-06": {
+        "attended": 84,
+        "sessions": 6
+      },
+      "2026-06-29": {
+        "attended": 54,
+        "sessions": 5
+      },
+      "2026-06-22": {
+        "attended": 104,
+        "sessions": 5
+      },
+      "2026-06-15": {
+        "attended": 98,
+        "sessions": 3
+      },
+      "2026-06-08": {
+        "attended": 72,
+        "sessions": 2
+      },
+      "2026-06-01": {
+        "attended": 41,
+        "sessions": 2
+      },
+      "2026-05-25": {
+        "attended": 107,
+        "sessions": 2
+      },
+      "2026-05-18": {
+        "attended": 89,
+        "sessions": 2
+      },
+      "2026-05-11": {
+        "attended": 161,
+        "sessions": 2
+      },
+      "2026-05-04": {
+        "attended": 163,
+        "sessions": 3
+      },
+      "2026-04-27": {
+        "attended": 198,
+        "sessions": 5
+      },
+      "2026-04-20": {
+        "attended": 107,
+        "sessions": 2
+      },
+      "2026-04-13": {
+        "attended": 140,
+        "sessions": 4
+      },
+      "2026-04-06": {
+        "attended": 115,
+        "sessions": 2
+      },
+      "2026-03-30": {
+        "attended": 73,
+        "sessions": 4
+      },
+      "2026-03-23": {
+        "attended": 93,
+        "sessions": 3
+      },
+      "2026-03-16": {
+        "attended": 125,
+        "sessions": 2
+      },
+      "2026-03-09": {
+        "attended": 171,
+        "sessions": 4
+      },
+      "2026-03-02": {
+        "attended": 106,
+        "sessions": 2
+      },
+      "2026-02-23": {
+        "attended": 127,
+        "sessions": 2
+      },
+      "2026-02-16": {
+        "attended": 178,
+        "sessions": 2
+      },
+      "2026-02-09": {
+        "attended": 112,
+        "sessions": 2
+      },
+      "2026-02-02": {
+        "attended": 109,
+        "sessions": 2
+      },
+      "2026-01-26": {
+        "attended": 135,
+        "sessions": 3
+      },
+      "2026-01-19": {
+        "attended": 129,
+        "sessions": 2
+      },
+      "2026-01-12": {
+        "attended": 117,
+        "sessions": 4
+      },
+      "2026-01-05": {
+        "attended": 115,
+        "sessions": 2
+      },
+      "2025-12-22": {
+        "attended": 42,
+        "sessions": 2
+      },
+      "2025-12-15": {
+        "attended": 97,
+        "sessions": 2
+      },
+      "2025-12-08": {
+        "attended": 146,
+        "sessions": 3
+      },
+      "2025-12-01": {
+        "attended": 120,
+        "sessions": 5
+      },
+      "2025-11-24": {
+        "attended": 87,
+        "sessions": 2
+      },
+      "2025-11-17": {
+        "attended": 97,
+        "sessions": 2
+      },
+      "2025-11-10": {
+        "attended": 125,
+        "sessions": 5
+      },
+      "2025-11-03": {
+        "attended": 216,
+        "sessions": 8
+      },
+      "2025-10-27": {
+        "attended": 138,
+        "sessions": 10
+      },
+      "2025-10-20": {
+        "attended": 176,
+        "sessions": 9
+      },
+      "2025-10-13": {
+        "attended": 173,
+        "sessions": 7
+      },
+      "2025-10-06": {
+        "attended": 128,
+        "sessions": 5
+      },
+      "2025-09-29": {
+        "attended": 81,
+        "sessions": 7
+      },
+      "2025-09-22": {
+        "attended": 108,
+        "sessions": 6
+      },
+      "2025-09-15": {
+        "attended": 133,
+        "sessions": 6
+      },
+      "2025-09-08": {
+        "attended": 83,
+        "sessions": 6
+      },
+      "2025-09-01": {
+        "attended": 144,
+        "sessions": 4
+      },
+      "2025-08-25": {
+        "attended": 98,
+        "sessions": 4
+      },
+      "2025-08-18": {
+        "attended": 87,
+        "sessions": 5
+      },
+      "2025-08-11": {
+        "attended": 127,
+        "sessions": 3
+      },
+      "2025-08-04": {
+        "attended": 69,
+        "sessions": 5
+      },
+      "2025-07-28": {
+        "attended": 85,
+        "sessions": 7
+      },
+      "2025-07-21": {
+        "attended": 113,
+        "sessions": 5
+      },
+      "2025-07-14": {
+        "attended": 163,
+        "sessions": 6
+      },
+      "2025-07-07": {
+        "attended": 139,
+        "sessions": 6
+      },
+      "2025-06-30": {
+        "attended": 96,
+        "sessions": 5
+      },
+      "2025-06-23": {
+        "attended": 96,
+        "sessions": 6
+      },
+      "2025-06-16": {
+        "attended": 176,
+        "sessions": 6
+      },
+      "2025-06-09": {
+        "attended": 118,
+        "sessions": 3
+      },
+      "2025-06-02": {
+        "attended": 108,
+        "sessions": 3
+      },
+      "2025-05-26": {
+        "attended": 184,
+        "sessions": 4
+      },
+      "2025-05-19": {
+        "attended": 257,
+        "sessions": 5
+      },
+      "2025-05-12": {
+        "attended": 191,
+        "sessions": 7
+      },
+      "2025-05-05": {
+        "attended": 123,
+        "sessions": 4
+      },
+      "2025-04-28": {
+        "attended": 140,
+        "sessions": 3
+      },
+      "2025-04-21": {
+        "attended": 128,
+        "sessions": 3
+      },
+      "2025-04-14": {
+        "attended": 146,
+        "sessions": 2
+      },
+      "2025-04-07": {
+        "attended": 97,
+        "sessions": 6
+      },
+      "2025-03-31": {
+        "attended": 198,
+        "sessions": 4
+      },
+      "2025-03-24": {
+        "attended": 137,
+        "sessions": 3
+      },
+      "2025-03-17": {
+        "attended": 87,
+        "sessions": 3
+      },
+      "2025-03-10": {
+        "attended": 169,
+        "sessions": 2
+      },
+      "2025-03-03": {
+        "attended": 296,
+        "sessions": 2
+      },
+      "2025-02-24": {
+        "attended": 206,
+        "sessions": 2
+      },
+      "2025-02-17": {
+        "attended": 72,
+        "sessions": 3
+      },
+      "2025-02-10": {
+        "attended": 220,
+        "sessions": 6
+      },
+      "2025-02-03": {
+        "attended": 308,
+        "sessions": 3
+      },
+      "2025-01-27": {
+        "attended": 114,
+        "sessions": 3
+      },
+      "2025-01-20": {
+        "attended": 190,
+        "sessions": 5
+      },
+      "2025-01-13": {
+        "attended": 160,
+        "sessions": 7
+      },
+      "2025-01-06": {
+        "attended": 268,
+        "sessions": 6
+      },
+      "2024-12-30": {
+        "attended": 120,
+        "sessions": 1
+      },
+      "2024-12-23": {
+        "attended": 82,
+        "sessions": 8
+      },
+      "2024-12-16": {
+        "attended": 93,
+        "sessions": 4
+      },
+      "2024-12-09": {
+        "attended": 159,
+        "sessions": 5
+      },
+      "2024-12-02": {
+        "attended": 104,
+        "sessions": 6
+      },
+      "2024-11-25": {
+        "attended": 195,
+        "sessions": 7
+      },
+      "2024-11-18": {
+        "attended": 123,
+        "sessions": 6
+      },
+      "2024-11-11": {
+        "attended": 119,
+        "sessions": 4
+      },
+      "2024-11-04": {
+        "attended": 162,
+        "sessions": 6
+      },
+      "2024-10-28": {
+        "attended": 217,
+        "sessions": 7
+      },
+      "2024-10-21": {
+        "attended": 144,
+        "sessions": 4
+      },
+      "2024-10-14": {
+        "attended": 154,
+        "sessions": 5
+      },
+      "2024-10-07": {
+        "attended": 321,
+        "sessions": 8
+      },
+      "2024-09-30": {
+        "attended": 25,
+        "sessions": 2
+      },
+      "2024-09-23": {
+        "attended": 246,
+        "sessions": 5
+      },
+      "2024-09-16": {
+        "attended": 229,
+        "sessions": 7
+      },
+      "2024-09-09": {
+        "attended": 101,
+        "sessions": 5
+      },
+      "2024-09-02": {
+        "attended": 179,
+        "sessions": 8
+      },
+      "2024-08-26": {
+        "attended": 93,
+        "sessions": 7
+      },
+      "2024-08-19": {
+        "attended": 227,
+        "sessions": 8
+      },
+      "2024-08-12": {
+        "attended": 129,
+        "sessions": 7
+      },
+      "2024-08-05": {
+        "attended": 126,
+        "sessions": 6
+      },
+      "2024-07-29": {
+        "attended": 129,
+        "sessions": 6
+      },
+      "2024-07-22": {
+        "attended": 152,
+        "sessions": 7
+      },
+      "2024-07-15": {
+        "attended": 207,
+        "sessions": 7
+      },
+      "2024-07-08": {
+        "attended": 466,
+        "sessions": 9
+      },
+      "2024-07-01": {
+        "attended": 47,
+        "sessions": 10
+      },
+      "2024-06-24": {
+        "attended": 123,
+        "sessions": 10
+      },
+      "2024-06-17": {
+        "attended": 261,
+        "sessions": 10
+      },
+      "2024-06-10": {
+        "attended": 130,
+        "sessions": 5
+      },
+      "2024-06-03": {
+        "attended": 138,
+        "sessions": 4
+      },
+      "2024-05-27": {
+        "attended": 104,
+        "sessions": 5
+      },
+      "2024-05-20": {
+        "attended": 1,
+        "sessions": 1
+      },
+      "2024-05-13": {
+        "attended": 212,
+        "sessions": 9
+      },
+      "2024-05-06": {
+        "attended": 187,
+        "sessions": 10
+      },
+      "2024-04-29": {
+        "attended": 88,
+        "sessions": 5
+      },
+      "2024-04-22": {
+        "attended": 175,
+        "sessions": 7
+      },
+      "2024-04-15": {
+        "attended": 179,
+        "sessions": 3
+      },
+      "2024-04-08": {
+        "attended": 208,
+        "sessions": 6
+      },
+      "2024-04-01": {
+        "attended": 232,
+        "sessions": 4
+      },
+      "2024-03-25": {
+        "attended": 220,
+        "sessions": 2
+      },
+      "2024-03-18": {
+        "attended": 15,
+        "sessions": 4
+      },
+      "2024-03-11": {
+        "attended": 218,
+        "sessions": 8
+      },
+      "2024-03-04": {
+        "attended": 208,
+        "sessions": 8
+      },
+      "2024-02-26": {
+        "attended": 118,
+        "sessions": 6
+      },
+      "2024-02-19": {
+        "attended": 181,
+        "sessions": 7
+      },
+      "2024-02-12": {
+        "attended": 206,
+        "sessions": 8
+      },
+      "2024-02-05": {
+        "attended": 278,
+        "sessions": 8
+      },
+      "2024-01-29": {
+        "attended": 167,
+        "sessions": 7
+      },
+      "2024-01-22": {
+        "attended": 317,
+        "sessions": 9
+      },
+      "2024-01-15": {
+        "attended": 175,
+        "sessions": 8
+      },
+      "2024-01-08": {
+        "attended": 473,
+        "sessions": 16
+      },
+      "2024-01-01": {
+        "attended": 33,
+        "sessions": 11
+      },
+      "2023-12-25": {
+        "attended": 55,
+        "sessions": 6
+      },
+      "2023-12-18": {
+        "attended": 165,
+        "sessions": 18
+      },
+      "2023-12-11": {
+        "attended": 309,
+        "sessions": 15
+      },
+      "2023-12-04": {
+        "attended": 200,
+        "sessions": 12
+      },
+      "2023-11-27": {
+        "attended": 172,
+        "sessions": 20
+      },
+      "2023-11-20": {
+        "attended": 158,
+        "sessions": 23
+      },
+      "2023-11-13": {
+        "attended": 288,
+        "sessions": 17
+      },
+      "2023-11-06": {
+        "attended": 60,
+        "sessions": 19
+      },
+      "2023-10-30": {
+        "attended": 308,
+        "sessions": 15
+      },
+      "2023-10-23": {
+        "attended": 213,
+        "sessions": 17
+      },
+      "2023-10-16": {
+        "attended": 178,
+        "sessions": 21
+      },
+      "2023-10-09": {
+        "attended": 338,
+        "sessions": 23
+      },
+      "2023-10-02": {
+        "attended": 56,
+        "sessions": 13
+      },
+      "2023-09-25": {
+        "attended": 339,
+        "sessions": 19
+      },
+      "2023-09-18": {
+        "attended": 361,
+        "sessions": 21
+      },
+      "2023-09-11": {
+        "attended": 413,
+        "sessions": 16
+      },
+      "2023-09-04": {
+        "attended": 15,
+        "sessions": 8
+      },
+      "2023-08-28": {
+        "attended": 216,
+        "sessions": 17
+      },
+      "2023-08-21": {
+        "attended": 186,
+        "sessions": 17
+      },
+      "2023-08-14": {
+        "attended": 429,
+        "sessions": 16
+      },
+      "2023-08-07": {
+        "attended": 153,
+        "sessions": 9
+      },
+      "2023-07-31": {
+        "attended": 252,
+        "sessions": 10
+      },
+      "2023-07-24": {
+        "attended": 316,
+        "sessions": 15
+      },
+      "2023-07-17": {
+        "attended": 258,
+        "sessions": 11
+      },
+      "2023-07-10": {
+        "attended": 614,
+        "sessions": 11
+      },
+      "2023-07-03": {
+        "attended": 317,
+        "sessions": 10
+      },
+      "2023-06-26": {
+        "attended": 313,
+        "sessions": 8
+      },
+      "2023-06-19": {
+        "attended": 350,
+        "sessions": 9
+      },
+      "2023-06-12": {
+        "attended": 533,
+        "sessions": 13
+      },
+      "2023-06-05": {
+        "attended": 199,
+        "sessions": 7
+      },
+      "2023-05-29": {
+        "attended": 242,
+        "sessions": 9
+      },
+      "2023-05-22": {
+        "attended": 184,
+        "sessions": 7
+      },
+      "2023-05-15": {
+        "attended": 260,
+        "sessions": 9
+      },
+      "2023-05-08": {
+        "attended": 336,
+        "sessions": 8
+      },
+      "2023-05-01": {
+        "attended": 247,
+        "sessions": 3
+      },
+      "2023-04-24": {
+        "attended": 5,
+        "sessions": 5
+      },
+      "2023-04-17": {
+        "attended": 336,
+        "sessions": 6
+      },
+      "2023-04-10": {
+        "attended": 307,
+        "sessions": 6
+      },
+      "2023-04-03": {
+        "attended": 274,
+        "sessions": 2
+      },
+      "2023-02-13": {
+        "attended": 88,
+        "sessions": 1
+      },
+      "2023-02-06": {
+        "attended": 78,
+        "sessions": 1
+      },
+      "2022-10-31": {
+        "attended": 45,
+        "sessions": 1
+      },
+      "2022-10-24": {
+        "attended": 119,
+        "sessions": 1
+      },
+      "2022-10-17": {
+        "attended": 322,
+        "sessions": 1
+      }
+    },
+    "Детская ортодонтия": {
+      "2025-03-31": {
+        "attended": 20,
+        "sessions": 1
+      },
+      "2025-03-10": {
+        "attended": 80,
+        "sessions": 1
+      }
+    },
+    "Аденоиды": {
+      "2025-02-17": {
+        "attended": 14,
+        "sessions": 1
+      },
+      "2025-02-10": {
+        "attended": 12,
+        "sessions": 1
+      },
+      "2025-02-03": {
+        "attended": 10,
+        "sessions": 1
+      }
+    }
+  }
+}
