@@ -143,19 +143,14 @@
     <button data-g="week" class="active" onclick="setGran('week')">По неделям</button>
     <button data-g="month" onclick="setGran('month')">По месяцам</button>
   </div>
+  <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 14px; margin-bottom:14px">
+    <button class="btn ghost" style="width:auto; margin:0; padding:8px 14px" onclick="shiftCursor(-1)">‹</button>
+    <div id="curLabel" style="font-weight:800; font-size:14px; text-align:center; flex:1"></div>
+    <button class="btn ghost" style="width:auto; margin:0; padding:8px 14px" onclick="shiftCursor(1)">›</button>
+  </div>
 
   <!-- ================= ОБЗОР ================= -->
   <div class="view active" id="view-overview">
-    <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px">
-      <div class="sec-title" style="margin:0">Период</div>
-      <select id="periodFilter" onchange="renderOverview()" style="width:auto">
-        <option value="30">30 дней</option>
-        <option value="90" selected>90 дней</option>
-        <option value="365">Год</option>
-        <option value="all">Всё время</option>
-      </select>
-    </div>
-
     <div class="stat-row" id="ov-stats"></div>
 
     <div class="card">
@@ -291,6 +286,7 @@ let BIZON_AGG = {};      // { funnel: { weekStart: {attended} } } — из Би�
 let BIZON_LOADED = false;
 let CUR_FUNNEL = FUNNELS[0];
 let GRAN = 'week';       // 'day' | 'week' | 'month' — текущая детализация
+let CURSOR = new Date().toISOString().slice(0,10); // выбранный конкретный день/неделя/месяц (любая дата внутри него)
 
 /* ---------------- PIN ---------------- */
 function checkPin(){
@@ -376,6 +372,38 @@ function bucketLabel(key, gran){
   }
   return "с "+key.slice(8,10)+"."+key.slice(5,7);
 }
+/* Полная подпись текущего выбранного периода (для навигатора вверху) */
+const MONTH_NAMES=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+function fullPeriodLabel(){
+  if(GRAN==='day'){
+    const d=new Date(CURSOR+"T00:00:00");
+    const MN=["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+    return d.getDate()+" "+MN[d.getMonth()]+" "+d.getFullYear();
+  }
+  if(GRAN==='month'){
+    const d=new Date(CURSOR+"T00:00:00");
+    return MONTH_NAMES[d.getMonth()]+" "+d.getFullYear();
+  }
+  const wk=mondayOf(CURSOR);
+  const start=new Date(wk+"T00:00:00");
+  const end=new Date(start); end.setDate(end.getDate()+6);
+  const f=(d)=>String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0");
+  return f(start)+" — "+f(end)+"."+end.getFullYear();
+}
+function shiftCursor(dir){
+  const d = new Date(CURSOR+"T00:00:00");
+  if(GRAN==='day') d.setDate(d.getDate()+dir);
+  else if(GRAN==='month') d.setMonth(d.getMonth()+dir);
+  else d.setDate(d.getDate()+dir*7);
+  CURSOR = d.toISOString().slice(0,10);
+  renderCursorLabel();
+  if(CUR_VIEW==='overview') renderOverview();
+  if(CUR_VIEW==='funnels') renderFunnelView();
+}
+function renderCursorLabel(){
+  const el=document.getElementById('curLabel');
+  if(el) el.textContent = fullPeriodLabel();
+}
 
 /* Объединяет ручные записи (расход/клики/регистрации/досидели/доп.продажи)
    с автоматическими покупками/выручкой из отдела продаж — по выбранной детализации. */
@@ -423,6 +451,7 @@ function showView(v){
 function setGran(g){
   GRAN = g;
   document.querySelectorAll('#granTabs button').forEach(b=>b.classList.toggle('active', b.dataset.g===g));
+  renderCursorLabel();
   if(CUR_VIEW==='overview') renderOverview();
   if(CUR_VIEW==='funnels') renderFunnelView();
 }
@@ -462,9 +491,9 @@ function pct(x){ return (x*100).toFixed(1)+"%"; }
 function allCombined(){ return FUNNELS.reduce((acc,f)=>acc.concat(combinedFor(f)),[]); }
 
 function renderOverview(){
-  const filt = document.getElementById('periodFilter') ? document.getElementById('periodFilter').value : '90';
-  const maxDays = filt==='all' ? Infinity : Number(filt);
-  const inRange = allCombined().filter(e=> maxDays===Infinity || daysAgo(e.date) <= maxDays);
+  renderCursorLabel();
+  const curKey = bucketKey(CURSOR, GRAN);
+  const inRange = allCombined().filter(e=> e.date===curKey);
 
   const totalSpend = sumField(inRange,'spend');
   const totalRevenue = sumField(inRange,'revenue');
@@ -484,8 +513,8 @@ function renderOverview(){
   }).sort((a,b)=>b.revenue-a.revenue);
   const totalRev2 = byFunnel.reduce((s,x)=>s+x.revenue,0) || 1;
 
-  if(!DB.entries.length){
-    document.getElementById('ov-rank').innerHTML = '<div class="empty">Пока нет данных — внесите первую запись во вкладке «Внести»</div>';
+  if(totalRev2<=1 && !totalSpend){
+    document.getElementById('ov-rank').innerHTML = '<div class="empty">За этот период данных нет — переключите период стрелками вверху или внесите запись</div>';
   } else {
     document.getElementById('ov-rank').innerHTML = byFunnel.map((x,i)=>`
       <div class="rank">
@@ -504,9 +533,10 @@ function renderOverview(){
   ];
   let flagsHtml='';
   FUNNELS.forEach(f=>{
-    const arr = entriesFor(f);
-    if(arr.length<2) return;
-    const last = arr[arr.length-1], prev = arr[arr.length-2];
+    const arr = entriesFor(f); // отсортировано по возрастанию даты/ключа
+    const idx = arr.findIndex(e=>e.date===curKey);
+    if(idx<1) return; // нет текущего периода или нет предыдущего для сравнения
+    const last = arr[idx], prev = arr[idx-1];
     stages.forEach(([key,fn,label])=>{
       const nv=fn(last), pv=fn(prev);
       if(pv<=0) return;
@@ -522,34 +552,39 @@ function renderOverview(){
 
 /* ---------------- ВОРОНКИ ---------------- */
 function renderFunnelView(){
+  renderCursorLabel();
   const arr = entriesFor(CUR_FUNNEL);
-  const last = arr[arr.length-1];
+  const curKey = bucketKey(CURSOR, GRAN);
+  const last = arr.find(e=>e.date===curKey);
 
-  if(!last){
+  if(!arr.length){
     document.getElementById('fn-stages').innerHTML = '<div class="empty">Нет записей по этой воронке</div>';
     document.getElementById('fn-chart').innerHTML = '';
     document.getElementById('fn-table').innerHTML = '';
     return;
   }
-
-  const stages = [
-    ['Клики', last.clicks],
-    ['Регистрации', last.registrations],
-    ['Досидели до эфира', last.attended],
-    ['Покупки', last.purchases],
-    ['Доп.продажи', last.downstream],
-  ];
-  const maxV = Math.max(1, ...stages.map(s=>s[1]||0));
-  let sHtml='';
-  stages.forEach((s,i)=>{
-    const w = Math.max(4, Math.round((s[1]||0)/maxV*100));
-    sHtml += `<div class="stage"><div class="lbl"><span>${s[0]}</span><b>${fmt(s[1])}</b></div><div class="bar"><i style="width:${w}%"></i></div></div>`;
-    if(i<stages.length-1){
-      const conv = rate(stages[i+1][1], s[1]);
-      sHtml += `<div class="conv">↓ ${pct(conv)}</div>`;
-    }
-  });
-  document.getElementById('fn-stages').innerHTML = sHtml;
+  if(!last){
+    document.getElementById('fn-stages').innerHTML = '<div class="empty">За этот период данных нет — переключите стрелками вверху</div>';
+  } else {
+    const stages = [
+      ['Клики', last.clicks],
+      ['Регистрации', last.registrations],
+      ['Досидели до эфира', last.attended],
+      ['Покупки', last.purchases],
+      ['Доп.продажи', last.downstream],
+    ];
+    const maxV = Math.max(1, ...stages.map(s=>s[1]||0));
+    let sHtml='';
+    stages.forEach((s,i)=>{
+      const w = Math.max(4, Math.round((s[1]||0)/maxV*100));
+      sHtml += `<div class="stage"><div class="lbl"><span>${s[0]}</span><b>${fmt(s[1])}</b></div><div class="bar"><i style="width:${w}%"></i></div></div>`;
+      if(i<stages.length-1){
+        const conv = rate(stages[i+1][1], s[1]);
+        sHtml += `<div class="conv">↓ ${pct(conv)}</div>`;
+      }
+    });
+    document.getElementById('fn-stages').innerHTML = sHtml;
+  }
 
   document.getElementById('fn-chart').innerHTML = buildTrendChart(arr);
 
