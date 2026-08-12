@@ -311,6 +311,8 @@ if(sessionStorage.getItem('mkt_pin_ok')==='1'){
   document.getElementById('pinScreen').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('tabbar').style.display='flex';
+  boot(); // ВАЖНО: без этого при повторном открытии (PIN уже введён ранее) вкладки воронок
+          // и данные вообще не загружались — сама проверка PIN "проходила", а boot() — нет
 }
 
 /* ---------------- ЗАГРУЗКА / СОХРАНЕНИЕ ---------------- */
