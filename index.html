@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Маркетинг — ProPrikus</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{ --bg1:#eef3fb; --bg2:#f6f8fc; --ink:#1f2740; --muted:#5f6b88; --card:#fff;
+    --line:#e6eaf3; --blue:#2f6fed; --blue-bg:#e6efff;
+    --green:#1e9e6b; --green-bg:#e6f7ef; --yellow:#b5860a; --yellow-bg:#fdf3dc;
+    --red:#c23b3b; --red-bg:#fdeaea; }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:linear-gradient(160deg,var(--bg1),var(--bg2)); color:var(--ink);
+    min-height:100vh;}
+  .wrap{max-width:640px; margin:0 auto; padding:16px 14px calc(90px + env(safe-area-inset-bottom))}
+  a{color:inherit}
+  h1,h2,h3{margin:0}
+
+  /* ---- PIN gate ---- */
+  #pinScreen{min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px; padding:20px}
+  #pinScreen .logo{font-size:40px}
+  #pinScreen input{font-size:24px; letter-spacing:8px; text-align:center; width:180px; padding:12px; border-radius:14px;
+    border:1px solid var(--line); background:#fff}
+  #pinScreen button{font-size:15px; font-weight:700; padding:12px 28px; border-radius:14px; border:none;
+    background:var(--blue); color:#fff}
+  #pinErr{color:var(--red); font-size:13px; min-height:16px}
+
+  /* ---- header / tabs ---- */
+  .head{text-align:center; margin:4px 0 16px}
+  .head h1{font-size:19px; font-weight:800}
+  .head p{margin:4px 0 0; color:var(--muted); font-size:12.5px}
+  .back{display:inline-block; color:var(--muted); text-decoration:none; font-size:13px; margin-bottom:10px}
+
+  .tabbar{position:fixed; left:0; right:0; bottom:0; background:#fff; border-top:1px solid var(--line);
+    display:flex; padding:6px 4px calc(6px + env(safe-area-inset-bottom)); z-index:20; box-shadow:0 -4px 16px rgba(31,45,90,.06)}
+  .tabbar button{flex:1; background:none; border:none; padding:8px 2px; font-size:10.5px; color:var(--muted);
+    display:flex; flex-direction:column; align-items:center; gap:3px; border-radius:10px}
+  .tabbar button .ic{font-size:19px}
+  .tabbar button.active{color:var(--blue); background:var(--blue-bg)}
+
+  .view{display:none}
+  .view.active{display:block}
+
+  /* ---- cards / generic ---- */
+  .card{background:var(--card); border-radius:18px; padding:16px; margin-bottom:14px;
+    box-shadow:0 8px 24px rgba(31,45,90,.08); border:1px solid rgba(31,45,90,.05)}
+  .sec-title{font-size:14.5px; font-weight:800; margin:0 0 10px}
+  .stat-row{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px}
+  .stat{flex:1; min-width:120px; background:var(--card); border-radius:16px; padding:12px 14px;
+    box-shadow:0 8px 24px rgba(31,45,90,.08); border:1px solid rgba(31,45,90,.05)}
+  .stat .l{font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.02em}
+  .stat .v{font-size:19px; font-weight:800; margin-top:4px}
+  .stat .v.green{color:var(--green)} .stat .v.red{color:var(--red)}
+
+  select, input[type=text], input[type=number], input[type=date], textarea{
+    width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:#fbfcfe;
+    font-size:14px; color:var(--ink); font-family:inherit}
+  label{font-size:12px; font-weight:700; color:var(--muted); display:block; margin:10px 0 4px}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .btn{display:inline-block; padding:11px 18px; border-radius:12px; border:none; background:var(--blue);
+    color:#fff; font-weight:700; font-size:14px; text-align:center; width:100%; margin-top:14px}
+  .btn.secondary{background:var(--blue-bg); color:var(--blue)}
+  .btn.ghost{background:transparent; color:var(--muted); border:1px solid var(--line)}
+  .msg{font-size:12.5px; margin-top:8px; text-align:center}
+  .msg.ok{color:var(--green)} .msg.err{color:var(--red)}
+
+  .rank{display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--line)}
+  .rank:first-child{border-top:none}
+  .rank .n{width:22px; height:22px; border-radius:7px; background:var(--blue-bg); color:var(--blue);
+    font-weight:800; font-size:12px; display:flex; align-items:center; justify-content:center; flex:0 0 auto}
+  .rank .f{flex:1; min-width:0}
+  .rank .f .nm{font-weight:700; font-size:13.5px}
+  .rank .f .sub{font-size:11.5px; color:var(--muted)}
+  .rank .amt{font-weight:800; font-size:14px; text-align:right}
+  .rank .amt .sm{display:block; font-size:10.5px; font-weight:600; color:var(--muted)}
+
+  .flagrow{display:flex; align-items:center; gap:10px; padding:9px 0; border-top:1px solid var(--line)}
+  .flagrow:first-child{border-top:none}
+  .dot{width:9px; height:9px; border-radius:50%; flex:0 0 auto}
+  .dot.g{background:var(--green)} .dot.r{background:var(--red)} .dot.n{background:#c7cede}
+  .flagrow .t{flex:1; font-size:13px}
+  .flagrow .t b{font-weight:700}
+  .flagrow .note{font-size:11.5px; color:var(--muted)}
+
+  .funnel-tabs{display:flex; gap:6px; overflow-x:auto; margin-bottom:12px; padding-bottom:2px}
+  .funnel-tabs button{flex:0 0 auto; padding:8px 12px; border-radius:999px; border:1px solid var(--line);
+    background:#fff; font-size:12px; font-weight:700; color:var(--muted); white-space:nowrap}
+  .funnel-tabs button.active{background:var(--blue); color:#fff; border-color:var(--blue)}
+
+  .stage{margin-bottom:8px}
+  .stage .lbl{display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); margin-bottom:3px}
+  .stage .lbl b{color:var(--ink); font-size:13px}
+  .stage .bar{height:20px; border-radius:6px; background:#eef1f8; overflow:hidden}
+  .stage .bar i{display:block; height:100%; background:linear-gradient(90deg,var(--blue),#5b93ff); border-radius:6px}
+  .stage .conv{font-size:10.5px; color:var(--muted); text-align:center; padding:2px 0}
+
+  table.data{width:100%; border-collapse:collapse; font-size:12px}
+  table.data th{text-align:left; padding:8px 6px; background:#f4f6fb; color:var(--muted); font-weight:700;
+    font-size:10.5px; text-transform:uppercase}
+  table.data td{padding:8px 6px; border-top:1px solid var(--line)}
+  .tbl-scroll{overflow-x:auto; border-radius:14px; border:1px solid var(--line)}
+
+  .chart-wrap{overflow-x:auto}
+  .legend{display:flex; gap:14px; font-size:11.5px; color:var(--muted); margin-top:6px}
+  .legend span{display:inline-flex; align-items:center; gap:5px}
+  .legend i{width:10px; height:10px; border-radius:3px; display:inline-block}
+
+  .changelist{display:flex; flex-direction:column; gap:10px}
+  .chitem{background:var(--card); border-radius:14px; padding:12px 14px; box-shadow:0 6px 18px rgba(31,45,90,.06); border:1px solid rgba(31,45,90,.05)}
+  .chitem .meta{font-size:11px; color:var(--muted); margin-bottom:4px}
+  .chitem .txt{font-size:13.5px}
+  .badge{display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; margin-right:6px}
+  .badge.ig{background:#fde8f0; color:#c23b83}
+  .badge.tt{background:#e6f5f5; color:#0f8a8a}
+  .badge.both{background:var(--blue-bg); color:var(--blue)}
+
+  .empty{text-align:center; color:var(--muted); font-size:13px; padding:20px 0}
+</style>
+</head>
+<body>
+<script>try{var tg=window.Telegram&&window.Telegram.WebApp; if(tg){tg.ready();tg.expand();}}catch(e){}</script>
+
+<div id="pinScreen">
+  <div class="logo">🔒</div>
+  <div style="font-weight:800; font-size:16px">Маркетинг ProPrikus</div>
+  <input id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+  <button onclick="checkPin()">Войти</button>
+  <div id="pinErr"></div>
+</div>
+
+<div id="app" style="display:none">
+<div class="wrap">
+  <a class="back" href="https://ainur717576291-ops.github.io/apps/">← Мои приложения</a>
+  <div class="head">
+    <h1>📣 Маркетинг</h1>
+    <p>Лиды и реклама по всем воронкам — где деньги и что пошло не так</p>
+  </div>
+
+  <!-- ================= ОБЗОР ================= -->
+  <div class="view active" id="view-overview">
+    <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+      <div class="sec-title" style="margin:0">Период</div>
+      <select id="periodFilter" onchange="renderOverview()" style="width:auto">
+        <option value="30">30 дней</option>
+        <option value="90" selected>90 дней</option>
+        <option value="365">Год</option>
+        <option value="all">Всё время</option>
+      </select>
+    </div>
+
+    <div class="stat-row" id="ov-stats"></div>
+
+    <div class="card">
+      <div class="sec-title">💰 Откуда реально идут деньги</div>
+      <div id="ov-rank"></div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title">⚠️ Что изменилось (последний период vs предыдущий)</div>
+      <div id="ov-flags"></div>
+    </div>
+  </div>
+
+  <!-- ================= ВОРОНКИ ================= -->
+  <div class="view" id="view-funnels">
+    <div class="funnel-tabs" id="funnelTabs"></div>
+
+    <div class="card">
+      <div class="sec-title">Путь клиента — последний период</div>
+      <div id="fn-stages"></div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title">CPL и эффективность по времени</div>
+      <div class="chart-wrap" id="fn-chart"></div>
+      <div class="legend">
+        <span><i style="background:#c23b83"></i>Instagram CPL</span>
+        <span><i style="background:#0f8a8a"></i>TikTok CPL</span>
+        <span><i style="background:#b5860a"></i>Изменение в кабинете</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title">Все записи по воронке</div>
+      <div class="tbl-scroll"><table class="data" id="fn-table"></table></div>
+    </div>
+  </div>
+
+  <!-- ================= ЖУРНАЛ ================= -->
+  <div class="view" id="view-log">
+    <div class="card" style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+      <div class="sec-title" style="margin:0">Журнал изменений в рекламе</div>
+      <select id="logFilter" onchange="renderLog()" style="width:auto">
+        <option value="">Все воронки</option>
+      </select>
+    </div>
+    <div class="changelist" id="logList"></div>
+  </div>
+
+  <!-- ================= ВНЕСТИ ================= -->
+  <div class="view" id="view-add">
+    <div class="card">
+      <div class="sec-title">➕ Недельная запись по воронке</div>
+      <label>Воронка</label>
+      <select id="eFunnel"></select>
+      <label>Платформа</label>
+      <select id="ePlatform"><option>Instagram</option><option>TikTok</option><option>Оба</option></select>
+      <label>Дата начала недели</label>
+      <input type="date" id="eDate">
+      <div class="grid2">
+        <div><label>Расход, ₸</label><input type="number" id="eSpend" placeholder="0"></div>
+        <div><label>Клики</label><input type="number" id="eClicks" placeholder="0"></div>
+        <div><label>Регистрации</label><input type="number" id="eReg" placeholder="0"></div>
+        <div><label>Досидели до эфира</label><input type="number" id="eAttend" placeholder="0"></div>
+        <div><label>Покупки, шт</label><input type="number" id="ePurch" placeholder="0"></div>
+        <div><label>Доп.продажи, шт</label><input type="number" id="eUpsell" placeholder="0"></div>
+      </div>
+      <label>Выручка за период, ₸</label>
+      <input type="number" id="eRevenue" placeholder="0">
+      <button class="btn" onclick="saveEntry()">Сохранить запись</button>
+      <div class="msg" id="eMsg"></div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title">🗒 Запись в журнал изменений</div>
+      <label>Воронка</label>
+      <select id="cFunnel"></select>
+      <label>Платформа</label>
+      <select id="cPlatform"><option>Instagram</option><option>TikTok</option><option>Оба</option></select>
+      <label>Дата</label>
+      <input type="date" id="cDate">
+      <label>Что поменяли</label>
+      <textarea id="cText" rows="3" placeholder="Например: сузила аудиторию 25-34, обновила крео"></textarea>
+      <button class="btn secondary" onclick="saveChange()">Добавить в журнал</button>
+      <div class="msg" id="cMsg"></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div class="tabbar" id="tabbar" style="display:none">
+  <button class="active" data-v="overview" onclick="showView('overview')"><span class="ic">📊</span>Обзор</button>
+  <button data-v="funnels" onclick="showView('funnels')"><span class="ic">🔻</span>Воронки</button>
+  <button data-v="log" onclick="showView('log')"><span class="ic">🗒</span>Журнал</button>
+  <button data-v="add" onclick="showView('add')"><span class="ic">➕</span>Внести</button>
+</div>
+
+<script>
+/* ---------------- КОНФИГ ---------------- */
+const PIN = "5891";
+const SUPA_URL="https://mmmtrfsestqbrjvseoea.supabase.co";
+const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tbXRyZnNlc3RxYnJqdnNlb2VhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwODU3NzEsImV4cCI6MjA5ODY2MTc3MX0.Xfj-FghqW1g6bQJhKPWyjgatGa0DY5AHaYhZEaCIkxM";
+const ROW_NAME = "__marketing_data";
+function sbHeaders(extra){ return Object.assign({"apikey":SUPA_KEY,"Authorization":"Bearer "+SUPA_KEY,"Content-Type":"application/json"}, extra||{}); }
+
+const FUNNELS = ["Вебинар","Интенсив","Аденоиды","Вредная привычка","Детская ортодонтия","Интенсив для врачей"];
+
+let DB = { entries: [], changes: [] };
+let CUR_FUNNEL = FUNNELS[0];
+
+/* ---------------- PIN ---------------- */
+function checkPin(){
+  const v = document.getElementById('pinInput').value;
+  if(v===PIN){
+    sessionStorage.setItem('mkt_pin_ok','1');
+    document.getElementById('pinScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('tabbar').style.display='flex';
+    boot();
+  } else {
+    document.getElementById('pinErr').textContent = 'Неверный код';
+  }
+}
+document.getElementById('pinInput').addEventListener('keydown', e=>{ if(e.key==='Enter') checkPin(); });
+if(sessionStorage.getItem('mkt_pin_ok')==='1'){
+  document.getElementById('pinScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('tabbar').style.display='flex';
+}
+
+/* ---------------- ЗАГРУЗКА / СОХРАНЕНИЕ ---------------- */
+function loadData(){
+  fetch(SUPA_URL+"/rest/v1/students?name=eq."+ROW_NAME+"&select=notes",{headers:sbHeaders()})
+    .then(r=>r.json())
+    .then(rows=>{
+      if(rows && rows.length){
+        try{ const j=JSON.parse(rows[0].notes||"{}"); DB.entries=j.entries||[]; DB.changes=j.changes||[]; }catch(e){}
+        renderAll();
+      } else {
+        // строки ещё нет — создаём
+        fetch(SUPA_URL+"/rest/v1/students",{method:"POST",headers:sbHeaders({"Prefer":"return=minimal"}),
+          body:JSON.stringify({name:ROW_NAME, curator:null, notes:JSON.stringify({entries:[],changes:[]})})})
+          .then(()=>renderAll());
+      }
+    })
+    .catch(()=>{ renderAll(); });
+}
+function persist(){
+  return fetch(SUPA_URL+"/rest/v1/students?name=eq."+ROW_NAME,
+    {method:"PATCH", headers:sbHeaders({"Prefer":"return=minimal"}),
+     body: JSON.stringify({notes: JSON.stringify({entries:DB.entries, changes:DB.changes})})});
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* ---------------- НАВИГАЦИЯ ---------------- */
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('#tabbar button').forEach(b=>b.classList.toggle('active', b.dataset.v===v));
+  if(v==='overview') renderOverview();
+  if(v==='funnels') renderFunnelView();
+  if(v==='log') renderLog();
+  window.scrollTo(0,0);
+}
+
+function boot(){
+  // селекты
+  ['eFunnel','cFunnel'].forEach(id=>{
+    const sel=document.getElementById(id);
+    FUNNELS.forEach(f=>{ const o=document.createElement('option'); o.textContent=f; sel.appendChild(o); });
+  });
+  const lf=document.getElementById('logFilter');
+  FUNNELS.forEach(f=>{ const o=document.createElement('option'); o.textContent=f; o.value=f; lf.appendChild(o); });
+  const ft=document.getElementById('funnelTabs');
+  FUNNELS.forEach(f=>{
+    const b=document.createElement('button'); b.textContent=f; b.dataset.f=f;
+    if(f===CUR_FUNNEL) b.classList.add('active');
+    b.onclick=()=>{ CUR_FUNNEL=f; document.querySelectorAll('#funnelTabs button').forEach(x=>x.classList.toggle('active',x.dataset.f===f)); renderFunnelView(); };
+    ft.appendChild(b);
+  });
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('eDate').value=today;
+  document.getElementById('cDate').value=today;
+  loadData();
+}
+
+function renderAll(){ renderOverview(); renderFunnelView(); renderLog(); }
+
+/* ---------------- ПОМОЩНИКИ ---------------- */
+function fmt(n){ n=Number(n)||0; return n.toLocaleString('ru-RU'); }
+function daysAgo(dateStr){ return (Date.now()-new Date(dateStr).getTime())/86400000; }
+function entriesFor(funnel){ return DB.entries.filter(e=>e.funnel===funnel).sort((a,b)=>a.date<b.date?-1:1); }
+function sumField(arr,f){ return arr.reduce((s,e)=>s+(Number(e[f])||0),0); }
+function rate(a,b){ return b>0 ? a/b : 0; }
+function pct(x){ return (x*100).toFixed(1)+"%"; }
+
+/* ---------------- ОБЗОР ---------------- */
+function renderOverview(){
+  const filt = document.getElementById('periodFilter') ? document.getElementById('periodFilter').value : '90';
+  const maxDays = filt==='all' ? Infinity : Number(filt);
+  const inRange = DB.entries.filter(e=> maxDays===Infinity || daysAgo(e.date) <= maxDays);
+
+  const totalSpend = sumField(inRange,'spend');
+  const totalRevenue = sumField(inRange,'revenue');
+  const totalReg = sumField(inRange,'registrations');
+  const roas = totalSpend>0 ? (totalRevenue/totalSpend) : 0;
+
+  document.getElementById('ov-stats').innerHTML = `
+    <div class="stat"><div class="l">Расход</div><div class="v">${fmt(totalSpend)} ₸</div></div>
+    <div class="stat"><div class="l">Выручка</div><div class="v green">${fmt(totalRevenue)} ₸</div></div>
+    <div class="stat"><div class="l">ROAS</div><div class="v ${roas>=1?'green':'red'}">×${roas.toFixed(2)}</div></div>
+    <div class="stat"><div class="l">Регистрации</div><div class="v">${fmt(totalReg)}</div></div>
+  `;
+
+  const byFunnel = FUNNELS.map(f=>{
+    const arr = inRange.filter(e=>e.funnel===f);
+    return { f, spend: sumField(arr,'spend'), revenue: sumField(arr,'revenue') };
+  }).sort((a,b)=>b.revenue-a.revenue);
+  const totalRev2 = byFunnel.reduce((s,x)=>s+x.revenue,0) || 1;
+
+  if(!DB.entries.length){
+    document.getElementById('ov-rank').innerHTML = '<div class="empty">Пока нет данных — внесите первую запись во вкладке «Внести»</div>';
+  } else {
+    document.getElementById('ov-rank').innerHTML = byFunnel.map((x,i)=>`
+      <div class="rank">
+        <div class="n">${i+1}</div>
+        <div class="f"><div class="nm">${x.f}</div><div class="sub">расход ${fmt(x.spend)} ₸ · ${pct(x.revenue/totalRev2)} от выручки</div></div>
+        <div class="amt">${fmt(x.revenue)} ₸<span class="sm">ROAS ×${(x.spend>0?x.revenue/x.spend:0).toFixed(2)}</span></div>
+      </div>`).join('');
+  }
+
+  // health flags: сравнение последних 2 периодов на воронку по 4 конверсиям
+  const stages = [
+    ['reg/clicks', e=>rate(e.registrations,e.clicks), 'Клики → Регистрации'],
+    ['att/reg', e=>rate(e.attended,e.registrations), 'Регистрации → Досидели'],
+    ['pur/att', e=>rate(e.purchases,e.attended), 'Досидели → Покупки'],
+    ['ups/pur', e=>rate(e.downstream,e.purchases), 'Покупки → Доп.продажи'],
+  ];
+  let flagsHtml='';
+  FUNNELS.forEach(f=>{
+    const arr = entriesFor(f);
+    if(arr.length<2) return;
+    const last = arr[arr.length-1], prev = arr[arr.length-2];
+    stages.forEach(([key,fn,label])=>{
+      const nv=fn(last), pv=fn(prev);
+      if(pv<=0) return;
+      const delta = (nv-pv)/pv;
+      if(Math.abs(delta) < 0.15) return; // незначительно
+      const cls = delta<0 ? 'r' : 'g';
+      const arrow = delta<0 ? '↓' : '↑';
+      flagsHtml += `<div class="flagrow"><div class="dot ${cls}"></div><div class="t"><b>${f}</b> — ${label} ${arrow} ${pct(Math.abs(delta))}<div class="note">было ${pct(pv)} → стало ${pct(nv)}</div></div></div>`;
+    });
+  });
+  document.getElementById('ov-flags').innerHTML = flagsHtml || '<div class="empty">Заметных изменений нет — всё стабильно</div>';
+}
+
+/* ---------------- ВОРОНКИ ---------------- */
+function renderFunnelView(){
+  const arr = entriesFor(CUR_FUNNEL);
+  const last = arr[arr.length-1];
+
+  if(!last){
+    document.getElementById('fn-stages').innerHTML = '<div class="empty">Нет записей по этой воронке</div>';
+    document.getElementById('fn-chart').innerHTML = '';
+    document.getElementById('fn-table').innerHTML = '';
+    return;
+  }
+
+  const stages = [
+    ['Клики', last.clicks],
+    ['Регистрации', last.registrations],
+    ['Досидели до эфира', last.attended],
+    ['Покупки', last.purchases],
+    ['Доп.продажи', last.downstream],
+  ];
+  const maxV = Math.max(1, ...stages.map(s=>s[1]||0));
+  let sHtml='';
+  stages.forEach((s,i)=>{
+    const w = Math.max(4, Math.round((s[1]||0)/maxV*100));
+    sHtml += `<div class="stage"><div class="lbl"><span>${s[0]}</span><b>${fmt(s[1])}</b></div><div class="bar"><i style="width:${w}%"></i></div></div>`;
+    if(i<stages.length-1){
+      const conv = rate(stages[i+1][1], s[1]);
+      sHtml += `<div class="conv">↓ ${pct(conv)}</div>`;
+    }
+  });
+  document.getElementById('fn-stages').innerHTML = sHtml;
+
+  document.getElementById('fn-chart').innerHTML = buildTrendChart(arr);
+
+  // таблица
+  let rows = arr.slice().reverse().map(e=>{
+    const cpl = e.registrations>0 ? Math.round(e.spend/e.registrations) : 0;
+    const roas = e.spend>0 ? (e.revenue/e.spend).toFixed(2) : '0.00';
+    return `<tr><td>${e.date}</td><td>${platBadge(e.platform)}</td><td>${fmt(e.spend)}</td><td>${fmt(e.clicks)}</td><td>${fmt(e.registrations)}</td><td>${fmt(e.attended)}</td><td>${fmt(e.purchases)}</td><td>${fmt(e.downstream)}</td><td>${fmt(e.revenue)}</td><td>${fmt(cpl)}</td><td>×${roas}</td></tr>`;
+  }).join('');
+  document.getElementById('fn-table').innerHTML = `
+    <thead><tr><th>Дата</th><th>Плат.</th><th>Расход</th><th>Клики</th><th>Рег.</th><th>Досид.</th><th>Покуп.</th><th>Доп.</th><th>Выручка</th><th>CPL</th><th>ROAS</th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="11" style="text-align:center;color:var(--muted)">Нет данных</td></tr>'}</tbody>`;
+}
+function platBadge(p){
+  const cls = p==='Instagram'?'ig':(p==='TikTok'?'tt':'both');
+  return `<span class="badge ${cls}">${p}</span>`;
+}
+
+function buildTrendChart(arr){
+  if(arr.length<2) return '<div class="empty">Нужно минимум 2 записи, чтобы построить график</div>';
+  const W=Math.max(320, arr.length*54), H=140, PAD=24;
+  const igPts = arr.map(e=>({date:e.date, cpl: (e.platform!=='TikTok' && e.registrations>0) ? e.spend/e.registrations : null}));
+  const ttPts = arr.map(e=>({date:e.date, cpl: (e.platform!=='Instagram' && e.platform!=='Оба' && e.registrations>0) ? e.spend/e.registrations : null}));
+  const allVals = arr.map(e=> e.registrations>0 ? e.spend/e.registrations : 0);
+  const maxV = Math.max(1, ...allVals);
+  const stepX = (W-PAD*2)/(arr.length-1);
+  function pathFor(getVal){
+    let d='', started=false;
+    arr.forEach((e,i)=>{
+      const v=getVal(e);
+      if(v==null){ started=false; return; }
+      const x=PAD+i*stepX, y=H-PAD-(v/maxV)*(H-PAD*2);
+      d += (started?' L':' M')+x.toFixed(1)+' '+y.toFixed(1);
+      started=true;
+    });
+    return d;
+  }
+  const igPath = pathFor(e=> e.platform!=='TikTok' && e.registrations>0 ? e.spend/e.registrations : null);
+  const ttPath = pathFor(e=> (e.platform==='TikTok') && e.registrations>0 ? e.spend/e.registrations : null);
+
+  let marks='';
+  DB.changes.filter(c=>c.funnel===CUR_FUNNEL).forEach(c=>{
+    let idx=-1, best=Infinity;
+    arr.forEach((e,i)=>{ const d=Math.abs(new Date(e.date)-new Date(c.date)); if(d<best){best=d; idx=i;} });
+    if(idx>=0){
+      const x=PAD+idx*stepX;
+      marks += `<line x1="${x}" y1="${PAD}" x2="${x}" y2="${H-PAD}" stroke="#b5860a" stroke-width="1.5" stroke-dasharray="3,3"/>`;
+    }
+  });
+
+  let axisLabels='';
+  arr.forEach((e,i)=>{ if(i%Math.ceil(arr.length/6||1)===0){ const x=PAD+i*stepX; axisLabels += `<text x="${x}" y="${H-4}" font-size="9" fill="#5f6b88" text-anchor="middle">${e.date.slice(5)}</text>`; } });
+
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    ${marks}
+    <path d="${igPath}" fill="none" stroke="#c23b83" stroke-width="2"/>
+    <path d="${ttPath}" fill="none" stroke="#0f8a8a" stroke-width="2"/>
+    ${axisLabels}
+  </svg>`;
+}
+
+/* ---------------- ЖУРНАЛ ---------------- */
+function renderLog(){
+  const filt = document.getElementById('logFilter').value;
+  const list = DB.changes.filter(c=> !filt || c.funnel===filt).sort((a,b)=>a.date<b.date?1:-1);
+  document.getElementById('logList').innerHTML = list.length ? list.map(c=>`
+    <div class="chitem">
+      <div class="meta">${c.date} · <b>${c.funnel}</b> · ${platBadge(c.platform)}</div>
+      <div class="txt">${escapeHtml(c.text)}</div>
+    </div>`).join('') : '<div class="empty">Записей пока нет</div>';
+}
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+/* ---------------- ФОРМЫ ---------------- */
+function saveEntry(){
+  const e = {
+    id: uid(),
+    funnel: document.getElementById('eFunnel').value,
+    platform: document.getElementById('ePlatform').value,
+    date: document.getElementById('eDate').value,
+    spend: Number(document.getElementById('eSpend').value)||0,
+    clicks: Number(document.getElementById('eClicks').value)||0,
+    registrations: Number(document.getElementById('eReg').value)||0,
+    attended: Number(document.getElementById('eAttend').value)||0,
+    purchases: Number(document.getElementById('ePurch').value)||0,
+    downstream: Number(document.getElementById('eUpsell').value)||0,
+    revenue: Number(document.getElementById('eRevenue').value)||0,
+  };
+  if(!e.date){ msgFor('eMsg','Укажите дату', true); return; }
+  DB.entries.push(e);
+  const msgEl=document.getElementById('eMsg'); msgEl.textContent='Сохраняю…'; msgEl.className='msg';
+  persist().then(()=>{
+    msgFor('eMsg','Сохранено ✓', false);
+    ['eSpend','eClicks','eReg','eAttend','ePurch','eUpsell','eRevenue'].forEach(id=>document.getElementById(id).value='');
+    renderAll();
+  }).catch(()=>msgFor('eMsg','Ошибка сохранения, попробуйте ещё раз', true));
+}
+function saveChange(){
+  const c = {
+    id: uid(),
+    funnel: document.getElementById('cFunnel').value,
+    platform: document.getElementById('cPlatform').value,
+    date: document.getElementById('cDate').value,
+    text: document.getElementById('cText').value.trim(),
+  };
+  if(!c.text){ msgFor('cMsg','Опишите, что поменяли', true); return; }
+  DB.changes.push(c);
+  const msgEl=document.getElementById('cMsg'); msgEl.textContent='Сохраняю…'; msgEl.className='msg';
+  persist().then(()=>{
+    msgFor('cMsg','Добавлено ✓', false);
+    document.getElementById('cText').value='';
+    renderAll();
+  }).catch(()=>msgFor('cMsg','Ошибка сохранения, попробуйте ещё раз', true));
+}
+function msgFor(id,text,isErr){
+  const el=document.getElementById(id);
+  el.textContent=text; el.className='msg '+(isErr?'err':'ok');
+  setTimeout(()=>{ el.textContent=''; }, 3000);
+}
+</script>
+</body>
+</html>
