@@ -214,7 +214,7 @@
       <div class="grid2">
         <div><label>Расход, ₸ <span style="font-weight:400">(если не Вебинар/Интенсив)</span></label><input type="number" id="eSpend" placeholder="0"></div>
         <div><label>Клики <span style="font-weight:400">(если не Вебинар/Интенсив)</span></label><input type="number" id="eClicks" placeholder="0"></div>
-        <div><label>Регистрации</label><input type="number" id="eReg" placeholder="0"></div>
+        <div><label>Регистрации <span style="font-weight:400">(если форма не подключена к Тильде)</span></label><input type="number" id="eReg" placeholder="0"></div>
         <div><label>Досидели до эфира <span style="font-weight:400">(если не Бизон)</span></label><input type="number" id="eAttend" placeholder="0"></div>
       </div>
       <label>Доп.продажи (апсейл), шт</label>
@@ -264,6 +264,7 @@ const FUNNELS = ["Вебинар","Интенсив","Аденоиды","Вре�
 const SALES_JSON_URL = "https://ainur717576291-ops.github.io/sales-crm/sales-data.json";
 const BIZON_JSON_URL = "./bizon-data.json";
 const META_JSON_URL = "./meta-data.json";
+const TILDA_JSON_URL = "./tilda-data.json";
 function mapProductToFunnel(product){
   product = String(product||"");
   if(product==="Стандарт" || product==="С куратором индивидуально") return "Вебинар";
@@ -292,6 +293,8 @@ let BIZON_AGG = {};      // { funnel: { weekStart: {attended} } } — из Би�
 let BIZON_LOADED = false;
 let META_RAW = {};       // { funnel: [{date, spend(USD), clicks}, ...] } — из Meta Ads, по дням
 let META_LOADED = false;
+let TILDA_RAW = {};      // { funnel: [{date}, ...] } — регистрации из вебхуков Tilda, по одной записи
+let TILDA_LOADED = false;
 const USD_KZT = 490;      // курс для перевода расхода Meta Ads (USD) в тенге — задан Айнурой 2026-08-13
 let CUR_FUNNEL = FUNNELS[0];
 let GRAN = 'week';       // 'day' | 'week' | 'month' — текущая детализация
@@ -336,7 +339,8 @@ function loadData(){
   const p2 = loadSales();
   const p3 = loadBizon();
   const p4 = loadMeta();
-  Promise.all([p1,p2,p3,p4]).then(renderAll).catch(renderAll);
+  const p5 = loadTilda();
+  Promise.all([p1,p2,p3,p4,p5]).then(renderAll).catch(renderAll);
 }
 function persist(){
   return fetch(SUPA_URL+"/rest/v1/students?name=eq."+ROW_NAME,
@@ -373,6 +377,13 @@ function loadMeta(){
     .then(r=>r.json())
     .then(j=>{ META_RAW = j.raw || {}; META_LOADED = true; })
     .catch(()=>{ META_LOADED = false; });
+}
+
+function loadTilda(){
+  return fetch(TILDA_JSON_URL, {cache:"no-store"})
+    .then(r=>r.json())
+    .then(j=>{ TILDA_RAW = j.raw || {}; TILDA_LOADED = true; })
+    .catch(()=>{ TILDA_LOADED = false; });
 }
 
 /* Ключ группировки в зависимости от текущей детализации (день/неделя/месяц) */
@@ -429,13 +440,13 @@ function renderCursorLabel(){
 function combinedFor(funnel, gran){
   gran = gran || GRAN;
   const map = {};
-  function blank(k){ return {funnel, date:k, platform:"—", spend:0, clicks:0, registrations:0, attended:0, attendedAuto:false, adsAuto:false, downstream:0, purchases:0, revenue:0}; }
+  function blank(k){ return {funnel, date:k, platform:"—", spend:0, clicks:0, registrations:0, regAuto:false, attended:0, attendedAuto:false, adsAuto:false, downstream:0, purchases:0, revenue:0}; }
   DB.entries.filter(e=>e.funnel===funnel).forEach(e=>{
     const k = bucketKey(e.date, gran);
     if(!map[k]) map[k] = blank(k);
     if(!map[k].adsAuto) map[k].spend += Number(e.spend)||0;   // ручное — только пока нет авто (Meta Ads)
     if(!map[k].adsAuto) map[k].clicks += Number(e.clicks)||0;
-    map[k].registrations += Number(e.registrations)||0;
+    if(!map[k].regAuto) map[k].registrations += Number(e.registrations)||0; // ручное — только пока нет авто (Tilda)
     map[k].downstream += Number(e.downstream)||0;
     if(!map[k].attendedAuto) map[k].attended += Number(e.attended)||0; // ручное — только пока нет авто (Бизон)
     if(e.platform) map[k].platform = (map[k].platform!=="—" && map[k].platform!==e.platform) ? "Разные" : e.platform;
@@ -458,6 +469,12 @@ function combinedFor(funnel, gran){
     if(!map[k].adsAuto){ map[k].spend = 0; map[k].clicks = 0; map[k].adsAuto = true; } // первый авто-ряд — сбросить ручное
     map[k].spend += (Number(row.spend)||0) * USD_KZT;
     map[k].clicks += Number(row.clicks)||0;
+  });
+  (TILDA_RAW[funnel]||[]).forEach(row=>{
+    const k = bucketKey(row.date, gran);
+    if(!map[k]) map[k] = blank(k);
+    if(!map[k].regAuto){ map[k].registrations = 0; map[k].regAuto = true; } // первый авто-ряд — сбросить ручное
+    map[k].registrations += 1;
   });
   return Object.values(map).sort((a,b)=>a.date<b.date?-1:1);
 }
