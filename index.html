@@ -212,8 +212,8 @@
       <label>Дата начала недели</label>
       <input type="date" id="eDate">
       <div class="grid2">
-        <div><label>Расход, ₸</label><input type="number" id="eSpend" placeholder="0"></div>
-        <div><label>Клики</label><input type="number" id="eClicks" placeholder="0"></div>
+        <div><label>Расход, ₸ <span style="font-weight:400">(если не Вебинар/Интенсив)</span></label><input type="number" id="eSpend" placeholder="0"></div>
+        <div><label>Клики <span style="font-weight:400">(если не Вебинар/Интенсив)</span></label><input type="number" id="eClicks" placeholder="0"></div>
         <div><label>Регистрации</label><input type="number" id="eReg" placeholder="0"></div>
         <div><label>Досидели до эфира <span style="font-weight:400">(если не Бизон)</span></label><input type="number" id="eAttend" placeholder="0"></div>
       </div>
@@ -263,6 +263,7 @@ const FUNNELS = ["Вебинар","Интенсив","Аденоиды","Вре�
    Сопоставление: продукт из таблицы продаж → воронка маркетинга. Подтверждено Айнурой 2026-08-12. */
 const SALES_JSON_URL = "https://ainur717576291-ops.github.io/sales-crm/sales-data.json";
 const BIZON_JSON_URL = "./bizon-data.json";
+const META_JSON_URL = "./meta-data.json";
 function mapProductToFunnel(product){
   product = String(product||"");
   if(product==="Стандарт" || product==="С куратором индивидуально") return "Вебинар";
@@ -289,6 +290,9 @@ let SALES_RAW = {};      // { funnel: [{date, amount}, ...] } — сырые п�
 let SALES_LOADED = false;
 let BIZON_AGG = {};      // { funnel: { weekStart: {attended} } } — из Бизон365, уже по неделям
 let BIZON_LOADED = false;
+let META_RAW = {};       // { funnel: [{date, spend(USD), clicks}, ...] } — из Meta Ads, по дням
+let META_LOADED = false;
+const USD_KZT = 470;      // курс для перевода расхода Meta Ads (USD) в тенге, обновлено 2026-08-13 — поправить при сильном изменении курса
 let CUR_FUNNEL = FUNNELS[0];
 let GRAN = 'week';       // 'day' | 'week' | 'month' — текущая детализация
 let CURSOR = ymdLocal(new Date()); // выбранный конкретный день/неделя/месяц (любая дата внутри него)
@@ -331,7 +335,8 @@ function loadData(){
     .catch(()=>{});
   const p2 = loadSales();
   const p3 = loadBizon();
-  Promise.all([p1,p2,p3]).then(renderAll).catch(renderAll);
+  const p4 = loadMeta();
+  Promise.all([p1,p2,p3,p4]).then(renderAll).catch(renderAll);
 }
 function persist(){
   return fetch(SUPA_URL+"/rest/v1/students?name=eq."+ROW_NAME,
@@ -361,6 +366,13 @@ function loadBizon(){
     .then(r=>r.json())
     .then(j=>{ BIZON_AGG = j.raw || {}; BIZON_LOADED = true; })
     .catch(()=>{ BIZON_LOADED = false; });
+}
+
+function loadMeta(){
+  return fetch(META_JSON_URL, {cache:"no-store"})
+    .then(r=>r.json())
+    .then(j=>{ META_RAW = j.raw || {}; META_LOADED = true; })
+    .catch(()=>{ META_LOADED = false; });
 }
 
 /* Ключ группировки в зависимости от текущей детализации (день/неделя/месяц) */
@@ -417,12 +429,12 @@ function renderCursorLabel(){
 function combinedFor(funnel, gran){
   gran = gran || GRAN;
   const map = {};
-  function blank(k){ return {funnel, date:k, platform:"—", spend:0, clicks:0, registrations:0, attended:0, attendedAuto:false, downstream:0, purchases:0, revenue:0}; }
+  function blank(k){ return {funnel, date:k, platform:"—", spend:0, clicks:0, registrations:0, attended:0, attendedAuto:false, adsAuto:false, downstream:0, purchases:0, revenue:0}; }
   DB.entries.filter(e=>e.funnel===funnel).forEach(e=>{
     const k = bucketKey(e.date, gran);
     if(!map[k]) map[k] = blank(k);
-    map[k].spend += Number(e.spend)||0;
-    map[k].clicks += Number(e.clicks)||0;
+    if(!map[k].adsAuto) map[k].spend += Number(e.spend)||0;   // ручное — только пока нет авто (Meta Ads)
+    if(!map[k].adsAuto) map[k].clicks += Number(e.clicks)||0;
     map[k].registrations += Number(e.registrations)||0;
     map[k].downstream += Number(e.downstream)||0;
     if(!map[k].attendedAuto) map[k].attended += Number(e.attended)||0; // ручное — только пока нет авто (Бизон)
@@ -439,6 +451,13 @@ function combinedFor(funnel, gran){
     if(!map[k]) map[k] = blank(k);
     if(!map[k].attendedAuto){ map[k].attended = 0; map[k].attendedAuto = true; } // первый авто-ряд — сбросить ручное
     map[k].attended += Number(row.attended)||0;
+  });
+  (META_RAW[funnel]||[]).forEach(row=>{
+    const k = bucketKey(row.date, gran);
+    if(!map[k]) map[k] = blank(k);
+    if(!map[k].adsAuto){ map[k].spend = 0; map[k].clicks = 0; map[k].adsAuto = true; } // первый авто-ряд — сбросить ручное
+    map[k].spend += (Number(row.spend)||0) * USD_KZT;
+    map[k].clicks += Number(row.clicks)||0;
   });
   return Object.values(map).sort((a,b)=>a.date<b.date?-1:1);
 }
