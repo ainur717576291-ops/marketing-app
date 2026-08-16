@@ -1,11 +1,5 @@
 {
   "source": "Tilda webhook (per-form registration events)",
-  "total_records": 1,
-  "raw": {
-    "Неопознано": [
-      {
-        "date": "2026-08-16"
-      }
-    ]
-  }
+  "total_records": 0,
+  "raw": {}
 }
