@@ -474,7 +474,7 @@ function combinedFor(funnel, gran){
     const k = bucketKey(row.date, gran);
     if(!map[k]) map[k] = blank(k);
     if(!map[k].regAuto){ map[k].registrations = 0; map[k].regAuto = true; } // первый авто-ряд — сбросить ручное
-    map[k].registrations += 1;
+    map[k].registrations += Number(row.count)||1; // count — для агрегированного бэкфилла, иначе 1 живая регистрация
   });
   return Object.values(map).sort((a,b)=>a.date<b.date?-1:1);
 }
