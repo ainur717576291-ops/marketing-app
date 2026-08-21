@@ -1,11 +1,15 @@
 {
-  "generated_at": "2026-08-20T19:27:06.340560Z",
+  "generated_at": "2026-08-21T19:27:05.587964Z",
   "source": "Bizon365 API (webinars/reports/getlist), по сессиям",
   "note": "attended = 'Единовременный максимум зрителей' сеанса (прокси посещаемости); регистрации НЕ доступны — в Бизон365 не настроены страницы регистрации",
-  "total_sessions_seen": 1285,
+  "total_sessions_seen": 1286,
   "unmapped_sessions": 80,
   "raw": {
     "Вебинар": [
+      {
+        "date": "2026-08-21",
+        "attended": 6
+      },
       {
         "date": "2026-08-20",
         "attended": 71
