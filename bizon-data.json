@@ -1,11 +1,15 @@
 {
-  "generated_at": "2026-09-03T19:27:05.921610Z",
+  "generated_at": "2026-09-04T19:27:05.291093Z",
   "source": "Bizon365 API (webinars/reports/getlist), по сессиям",
   "note": "attended = 'Единовременный максимум зрителей' сеанса (прокси посещаемости); регистрации НЕ доступны — в Бизон365 не настроены страницы регистрации",
-  "total_sessions_seen": 1295,
+  "total_sessions_seen": 1297,
   "unmapped_sessions": 82,
   "raw": {
     "Вебинар": [
+      {
+        "date": "2026-09-04",
+        "attended": 16
+      },
       {
         "date": "2026-09-03",
         "attended": 0
@@ -4696,6 +4700,10 @@
       }
     ],
     "Интенсив": [
+      {
+        "date": "2026-09-04",
+        "attended": 6
+      },
       {
         "date": "2026-09-03",
         "attended": 6
