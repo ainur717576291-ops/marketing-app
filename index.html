@@ -127,6 +127,16 @@
   .stage.side .bar i{background:linear-gradient(90deg,#9aa7c4,#c3cbe0)}
   .stage .na{font-size:10.5px; color:var(--muted); font-weight:400}
   .conv.big{font-size:11.5px; font-weight:800; color:var(--blue)}
+  .fnl{display:flex; flex-direction:column; align-items:center; padding:4px 0 2px}
+  .fnl .ly{color:#fff; text-align:center; padding:9px 18px 10px; min-height:54px; display:flex; flex-direction:column; justify-content:center}
+  .fnl .ly .t{font-size:11px; font-weight:700; opacity:.92}
+  .fnl .ly .n{font-size:18px; font-weight:800; line-height:1.15}
+  .fnl .ly .x{font-size:10px; opacity:.9}
+  .fnl .ly.na .n{font-size:11px; font-weight:600; opacity:.85}
+  .fnl .cv{font-size:10.5px; color:var(--muted); padding:3px 0; font-weight:700}
+  .fnl .cv.big{color:var(--blue); font-size:11.5px; font-weight:800}
+  .fnl .out{margin-top:8px; background:var(--green-bg); color:var(--green); border-radius:12px; padding:8px 16px; font-weight:800; font-size:15px; text-align:center}
+  .fnl .out small{display:block; font-size:10.5px; font-weight:600; color:var(--muted)}
   .infl{padding:9px 0; border-top:1px solid var(--line); font-size:12.5px}
   .infl:first-child{border-top:none}
   .infl .d{font-size:11px; color:var(--muted)}
@@ -671,24 +681,23 @@ function renderFunnelView(){
       ['Досидели до конца', det ? last.stayed : null, 'нет данных из Бизона за этот период'],
       ['Покупки', last.purchases],
     ];
-    const maxV = Math.max(1, ...chain.map(s=>s[1]||0));
-    const bar = (lbl,v,na,side)=>{
-      const w = v==null ? 0 : Math.max(3, Math.round(v/maxV*100));
-      return `<div class="stage${side?' side':''}"><div class="lbl"><span>${lbl}</span><b>${v==null?'<span class="na">'+na+'</span>':fmt(v)}</b></div><div class="bar"><i style="width:${w}%"></i></div></div>`;
-    };
-    let h='';
+    // Рисуем как воронку: слои фиксированно сужаются (не пропорционально числам — иначе
+    // 21 покупка из 11 000 кликов была бы невидимой полоской), каждый слой — трапеция.
+    const WIDTHS=[100,87,74,61,48,35], COLORS=['#2f6fed','#3d7bf0','#4b88e6','#3f9fc6','#2fae9a','#1e9e6b'];
+    let h='<div class="fnl">';
     chain.forEach((s,i)=>{
-      h += bar(s[0], s[1], s[2]);
-      if(i===2 && last.attended) h += bar('↳ максимум одновременно', last.attended, '', true);
+      const w=WIDTHS[i], wn=WIDTHS[i+1]||w-13, inset=((w-wn)/2/w*100).toFixed(2);
+      const extra = (i===2 && last.attended) ? `<div class="x">максимум одновременно ${fmt(last.attended)}</div>` : '';
+      h += `<div class="ly${s[1]==null?' na':''}" style="width:${w}%; background:${COLORS[i]}; clip-path:polygon(0 0,100% 0,${100-inset}% 100%,${inset}% 100%)">
+        <div class="t">${s[0]}</div><div class="n">${s[1]==null?s[2]:fmt(s[1])}</div>${extra}</div>`;
       if(i<chain.length-1){
-        const a=s[1], b=chain[i+1][1];
-        const c = (a>0 && b!=null) ? b/a : null;
-        h += i===0 ? `<div class="conv big">↓ конверсия сайта ${c==null?'—':pct(c)}</div>`
-                   : `<div class="conv">↓ ${c==null?'—':pct(c)}</div>`;
+        const a=s[1], b2=chain[i+1][1];
+        const c = (a>0 && b2!=null) ? b2/a : null;
+        h += `<div class="cv${i===0?' big':''}">↓ ${c==null?'—':pct(c)}${i===0?' конверсия сайта':''}</div>`;
       }
     });
-    h += `<div class="stage" style="margin-top:6px"><div class="lbl"><span>💰 Выручка</span><b style="color:var(--green)">${fmt(last.revenue)} ₸</b></div></div>`;
-    if(last.registrations>0 && last.spend>0) h += `<div class="conv" style="text-align:left">Регистрация стоит ≈ ${fmt(Math.round(last.spend/last.registrations))} ₸${last.purchases?' · покупка ≈ '+fmt(Math.round(last.spend/last.purchases))+' ₸':''}</div>`;
+    h += `<div class="out">💰 ${fmt(last.revenue)} ₸<small>выручка${last.spend>0?' · бюджет '+fmt(Math.round(last.spend))+' ₸':''}</small></div></div>`;
+    if(last.registrations>0 && last.spend>0) h += `<div class="conv" style="text-align:center; margin-top:6px">Регистрация стоит ≈ ${fmt(Math.round(last.spend/last.registrations))} ₸${last.purchases?' · покупка ≈ '+fmt(Math.round(last.spend/last.purchases))+' ₸':''}</div>`;
     document.getElementById('fn-stages').innerHTML = h;
   }
 
