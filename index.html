@@ -597,7 +597,7 @@ function renderOverview(){
   document.getElementById('ov-stats').innerHTML = `
     <div class="stat"><div class="l">Бюджет</div><div class="v">${fmt(Math.round(totalSpend))} ₸</div></div>
     <div class="stat"><div class="l">Выручка</div><div class="v green">${fmt(totalRevenue)} ₸</div></div>
-    <div class="stat"><div class="l">ROAS рекламы</div><div class="v ${roas>=1?'green':'red'}">${totalSpend>0?'×'+roas.toFixed(2):'—'}</div></div>
+    <div class="stat"><div class="l">Окупаемость рекламы</div><div class="v ${roas>=1?'green':'red'}">${totalSpend>0?'×'+roas.toFixed(2):'—'}</div></div>
     <div class="stat"><div class="l">Регистрации</div><div class="v">${fmt(totalReg)}</div></div>
   `;
 
@@ -614,7 +614,7 @@ function renderOverview(){
       <div class="rank">
         <div class="n">${i+1}</div>
         <div class="f"><div class="nm">${x.f}</div><div class="sub">бюджет ${fmt(Math.round(x.spend))} ₸ · ${x.spend? (x.revenue-x.spend>=0?'плюс ':'минус ')+fmt(Math.abs(Math.round(x.revenue-x.spend)))+' ₸ · ' : ''}${pct(x.revenue/totalRev2)} выручки</div></div>
-        <div class="amt">${fmt(x.revenue)} ₸<span class="sm">${x.spend>0?'ROAS ×'+(x.revenue/x.spend).toFixed(2):'без рекламы'}</span></div>
+        <div class="amt">${fmt(x.revenue)} ₸<span class="sm">${x.spend>0?'окупаемость ×'+(x.revenue/x.spend).toFixed(2):'без рекламы'}</span></div>
       </div>`).join('') + otherBlock(otherIn, totalRev2);
   }
 
@@ -742,7 +742,7 @@ function renderFunnelView(){
     return `<tr><td>${bucketLabel(e.date)}</td><td>${fmt(Math.round(e.spend))}</td><td>${fmt(e.clicks)}</td><td>${fmt(e.registrations)}</td><td>${sc==null?'—':pct(sc)}</td><td>${cell(e,e.viewers)}</td><td>${fmt(e.attended)}</td><td>${cell(e,e.stayed)}</td><td>${fmt(e.purchases)}</td><td>${fmt(e.revenue)}</td><td>${fmt(cpl)}</td><td>×${roas}</td></tr>`;
   }).join('');
   document.getElementById('fn-table').innerHTML = `
-    <thead><tr><th>Период</th><th>Бюджет</th><th>Клики</th><th>Рег.</th><th>Конв. сайта</th><th>Пришли</th><th>Макс.</th><th>До конца</th><th>Покуп.</th><th>Выручка</th><th>Цена рег.</th><th>ROAS</th></tr></thead>
+    <thead><tr><th>Период</th><th>Бюджет</th><th>Клики</th><th>Рег.</th><th>Конв. сайта</th><th>Пришли</th><th>Макс.</th><th>До конца</th><th>Покуп.</th><th>Выручка</th><th>Цена рег.</th><th>Окуп.</th></tr></thead>
     <tbody>${rows || '<tr><td colspan="12" style="text-align:center;color:var(--muted)">Нет данных</td></tr>'}</tbody>`;
 }
 
