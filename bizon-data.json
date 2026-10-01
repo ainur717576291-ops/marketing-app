@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-30T19:27:06.203078Z",
+  "generated_at": "2026-10-01T06:25:59Z",
   "source": "Bizon365 API (webinars/reports/getlist), по сессиям",
-  "note": "attended = 'Единовременный максимум зрителей' сеанса (прокси посещаемости); регистрации НЕ доступны — в Бизон365 не настроены страницы регистрации",
+  "note": "attended = единовременный максимум зрителей сеанса; viewers = всего уникальных зрителей; stayed = были в комнате в последние 5 мин эфира (досидели до конца). Регистрации в Бизоне не ведутся (они на Тильде)",
   "total_sessions_seen": 1320,
   "unmapped_sessions": 88,
   "raw": {
@@ -16,15 +16,21 @@
       },
       {
         "date": "2026-09-24",
-        "attended": 16
+        "attended": 16,
+        "viewers": 20,
+        "stayed": 9
       },
       {
         "date": "2026-09-23",
-        "attended": 14
+        "attended": 14,
+        "viewers": 15,
+        "stayed": 11
       },
       {
         "date": "2026-09-22",
-        "attended": 15
+        "attended": 15,
+        "viewers": 18,
+        "stayed": 15
       },
       {
         "date": "2026-09-21",
@@ -52,115 +58,171 @@
       },
       {
         "date": "2026-09-16",
-        "attended": 4
+        "attended": 4,
+        "viewers": 7,
+        "stayed": 3
       },
       {
         "date": "2026-09-15",
-        "attended": 4
+        "attended": 4,
+        "viewers": 6,
+        "stayed": 2
       },
       {
         "date": "2026-09-14",
-        "attended": 3
+        "attended": 3,
+        "viewers": 7,
+        "stayed": 4
       },
       {
         "date": "2026-09-04",
-        "attended": 6
+        "attended": 6,
+        "viewers": 8,
+        "stayed": 5
       },
       {
         "date": "2026-09-03",
-        "attended": 6
+        "attended": 6,
+        "viewers": 7,
+        "stayed": 5
       },
       {
         "date": "2026-09-02",
-        "attended": 7
+        "attended": 7,
+        "viewers": 7,
+        "stayed": 6
       },
       {
         "date": "2026-08-26",
-        "attended": 21
+        "attended": 21,
+        "viewers": 27,
+        "stayed": 0
       },
       {
         "date": "2026-08-25",
-        "attended": 11
+        "attended": 11,
+        "viewers": 15,
+        "stayed": 10
       },
       {
         "date": "2026-08-24",
-        "attended": 16
+        "attended": 16,
+        "viewers": 18,
+        "stayed": 17
       },
       {
         "date": "2026-08-14",
-        "attended": 12
+        "attended": 12,
+        "viewers": 21,
+        "stayed": 10
       },
       {
         "date": "2026-08-13",
-        "attended": 9
+        "attended": 9,
+        "viewers": 13,
+        "stayed": 6
       },
       {
         "date": "2026-08-12",
-        "attended": 13
+        "attended": 13,
+        "viewers": 14,
+        "stayed": 13
       },
       {
         "date": "2026-08-05",
-        "attended": 12
+        "attended": 12,
+        "viewers": 14,
+        "stayed": 8
       },
       {
         "date": "2026-08-04",
-        "attended": 7
+        "attended": 7,
+        "viewers": 9,
+        "stayed": 6
       },
       {
         "date": "2026-08-03",
-        "attended": 9
+        "attended": 9,
+        "viewers": 10,
+        "stayed": 8
       },
       {
         "date": "2026-07-29",
-        "attended": 11
+        "attended": 11,
+        "viewers": 13,
+        "stayed": 6
       },
       {
         "date": "2026-07-28",
-        "attended": 7
+        "attended": 7,
+        "viewers": 11,
+        "stayed": 7
       },
       {
         "date": "2026-07-27",
-        "attended": 12
+        "attended": 12,
+        "viewers": 14,
+        "stayed": 10
       },
       {
         "date": "2026-07-22",
-        "attended": 8
+        "attended": 8,
+        "viewers": 12,
+        "stayed": 7
       },
       {
         "date": "2026-07-21",
-        "attended": 9
+        "attended": 9,
+        "viewers": 11,
+        "stayed": 8
       },
       {
         "date": "2026-07-20",
-        "attended": 8
+        "attended": 8,
+        "viewers": 12,
+        "stayed": 8
       },
       {
         "date": "2026-07-17",
-        "attended": 6
+        "attended": 6,
+        "viewers": 12,
+        "stayed": 5
       },
       {
         "date": "2026-07-16",
-        "attended": 4
+        "attended": 4,
+        "viewers": 7,
+        "stayed": 3
       },
       {
         "date": "2026-07-15",
-        "attended": 8
+        "attended": 8,
+        "viewers": 11,
+        "stayed": 9
       },
       {
         "date": "2026-07-08",
-        "attended": 12
+        "attended": 12,
+        "viewers": 16,
+        "stayed": 10
       },
       {
         "date": "2026-07-07",
-        "attended": 14
+        "attended": 14,
+        "viewers": 16,
+        "stayed": 12
       },
       {
         "date": "2026-07-06",
-        "attended": 15
+        "attended": 15,
+        "viewers": 18,
+        "stayed": 12
       },
       {
         "date": "2026-07-01",
-        "attended": 5
+        "attended": 5,
+        "viewers": 5,
+        "stayed": 2
       },
       {
         "date": "2026-06-30",
@@ -174,11 +236,15 @@
       },
       {
         "date": "2026-09-25",
-        "attended": 11
+        "attended": 11,
+        "viewers": 24,
+        "stayed": 2
       },
       {
         "date": "2026-09-24",
-        "attended": 64
+        "attended": 64,
+        "viewers": 118,
+        "stayed": 10
       },
       {
         "date": "2026-09-21",
@@ -186,111 +252,165 @@
       },
       {
         "date": "2026-09-18",
-        "attended": 13
+        "attended": 13,
+        "viewers": 30,
+        "stayed": 1
       },
       {
         "date": "2026-09-17",
-        "attended": 48
+        "attended": 48,
+        "viewers": 99,
+        "stayed": 15
       },
       {
         "date": "2026-09-11",
-        "attended": 7
+        "attended": 7,
+        "viewers": 17,
+        "stayed": 1
       },
       {
         "date": "2026-09-10",
-        "attended": 50
+        "attended": 50,
+        "viewers": 94,
+        "stayed": 8
       },
       {
         "date": "2026-09-04",
-        "attended": 16
+        "attended": 16,
+        "viewers": 32,
+        "stayed": 2
       },
       {
         "date": "2026-09-03",
-        "attended": 81
+        "attended": 81,
+        "viewers": 171,
+        "stayed": 28
       },
       {
         "date": "2026-08-28",
-        "attended": 10
+        "attended": 10,
+        "viewers": 25,
+        "stayed": 1
       },
       {
         "date": "2026-08-27",
-        "attended": 54
+        "attended": 54,
+        "viewers": 103,
+        "stayed": 12
       },
       {
         "date": "2026-08-21",
-        "attended": 6
+        "attended": 6,
+        "viewers": 18,
+        "stayed": 2
       },
       {
         "date": "2026-08-20",
-        "attended": 71
+        "attended": 71,
+        "viewers": 112,
+        "stayed": 14
       },
       {
         "date": "2026-08-14",
-        "attended": 15
+        "attended": 15,
+        "viewers": 29,
+        "stayed": 2
       },
       {
         "date": "2026-08-13",
-        "attended": 73
+        "attended": 73,
+        "viewers": 120,
+        "stayed": 19
       },
       {
         "date": "2026-08-07",
-        "attended": 13
+        "attended": 13,
+        "viewers": 26,
+        "stayed": 2
       },
       {
         "date": "2026-08-06",
-        "attended": 80
+        "attended": 80,
+        "viewers": 170,
+        "stayed": 6
       },
       {
         "date": "2026-07-31",
-        "attended": 18
+        "attended": 18,
+        "viewers": 55,
+        "stayed": 6
       },
       {
         "date": "2026-07-30",
-        "attended": 110
+        "attended": 110,
+        "viewers": 182,
+        "stayed": 40
       },
       {
         "date": "2026-07-30",
-        "attended": 1
+        "attended": 1,
+        "viewers": 1,
+        "stayed": 0
       },
       {
         "date": "2026-07-24",
-        "attended": 9
+        "attended": 9,
+        "viewers": 20,
+        "stayed": 0
       },
       {
         "date": "2026-07-23",
-        "attended": 39
+        "attended": 39,
+        "viewers": 65,
+        "stayed": 6
       },
       {
         "date": "2026-07-23",
-        "attended": 2
+        "attended": 2,
+        "viewers": 2,
+        "stayed": 1
       },
       {
         "date": "2026-07-17",
-        "attended": 11
+        "attended": 11,
+        "viewers": 21,
+        "stayed": 4
       },
       {
         "date": "2026-07-16",
-        "attended": 56
+        "attended": 56,
+        "viewers": 122,
+        "stayed": 27
       },
       {
         "date": "2026-07-10",
-        "attended": 11
+        "attended": 11,
+        "viewers": 23,
+        "stayed": 4
       },
       {
         "date": "2026-07-09",
-        "attended": 31
+        "attended": 31,
+        "viewers": 52,
+        "stayed": 13
       },
       {
         "date": "2026-07-06",
-        "attended": 1
+        "attended": 1,
+        "viewers": 1,
+        "stayed": 0
       },
       {
         "date": "2026-07-03",
-        "attended": 4
+        "attended": 4,
+        "viewers": 9,
+        "stayed": 0
       },
       {
         "date": "2026-07-02",
-        "attended": 34
+        "attended": 34,
+        "viewers": 47,
+        "stayed": 9
       },
       {
         "date": "2026-06-29",
@@ -4884,15 +5004,21 @@
     "Вредная привычка": [
       {
         "date": "2026-08-11",
-        "attended": 10
+        "attended": 10,
+        "viewers": 23,
+        "stayed": 1
       },
       {
         "date": "2026-07-23",
-        "attended": 1
+        "attended": 1,
+        "viewers": 1,
+        "stayed": 1
       },
       {
         "date": "2026-07-07",
-        "attended": 12
+        "attended": 12,
+        "viewers": 25,
+        "stayed": 3
       },
       {
         "date": "2026-06-17",
