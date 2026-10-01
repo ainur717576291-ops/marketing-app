@@ -116,6 +116,20 @@
   .badge.tt{background:#e6f5f5; color:#0f8a8a}
   .badge.both{background:var(--blue-bg); color:var(--blue)}
 
+  .fresh{font-size:11.5px; line-height:1.45; background:var(--yellow-bg); color:#7a5a06; border-radius:12px; padding:9px 12px; margin-bottom:12px}
+  .fresh b{font-weight:800}
+  .kpis{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px}
+  .kpi{background:var(--card); border-radius:14px; padding:10px 12px; box-shadow:0 6px 18px rgba(31,45,90,.06); border:1px solid rgba(31,45,90,.05)}
+  .kpi .l{font-size:10.5px; color:var(--muted); font-weight:700; text-transform:uppercase}
+  .kpi .v{font-size:17px; font-weight:800; margin-top:3px}
+  .kpi .s{font-size:10.5px; color:var(--muted); margin-top:1px}
+  .kpi.hl{background:var(--blue-bg)}
+  .stage.side .bar i{background:linear-gradient(90deg,#9aa7c4,#c3cbe0)}
+  .stage .na{font-size:10.5px; color:var(--muted); font-weight:400}
+  .conv.big{font-size:11.5px; font-weight:800; color:var(--blue)}
+  .infl{padding:9px 0; border-top:1px solid var(--line); font-size:12.5px}
+  .infl:first-child{border-top:none}
+  .infl .d{font-size:11px; color:var(--muted)}
   .empty{text-align:center; color:var(--muted); font-size:13px; padding:20px 0}
 </style>
 </head>
@@ -169,19 +183,27 @@
   <div class="view" id="view-funnels">
     <div class="funnel-tabs" id="funnelTabs"></div>
 
+    <div id="fn-fresh"></div>
+    <div class="kpis" id="fn-kpis"></div>
+
     <div class="card">
-      <div class="sec-title">Путь клиента — последний период</div>
+      <div class="sec-title">🔻 Путь клиента от клика до оплаты</div>
       <div id="fn-stages"></div>
     </div>
 
     <div class="card">
-      <div class="sec-title">CPL и эффективность по времени</div>
+      <div class="sec-title">🌐 Конверсия сайта по времени</div>
+      <div style="font-size:11px; color:var(--muted); margin:-6px 0 8px">Сколько % кликнувших оставили регистрацию. Пунктир — ваши изменения из журнала</div>
       <div class="chart-wrap" id="fn-chart"></div>
       <div class="legend">
-        <span><i style="background:#c23b83"></i>Instagram CPL</span>
-        <span><i style="background:#0f8a8a"></i>TikTok CPL</span>
-        <span><i style="background:#b5860a"></i>Изменение в кабинете</span>
+        <span><i style="background:#2f6fed"></i>Конверсия сайта</span>
+        <span><i style="background:#b5860a"></i>Изменение (журнал)</span>
       </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title">🔍 Что повлияло на конверсию сайта</div>
+      <div id="fn-influence"></div>
     </div>
 
     <div class="card">
@@ -215,7 +237,7 @@
         <div><label>Расход, ₸ <span style="font-weight:400">(если не Вебинар/Интенсив)</span></label><input type="number" id="eSpend" placeholder="0"></div>
         <div><label>Клики <span style="font-weight:400">(если не Вебинар/Интенсив)</span></label><input type="number" id="eClicks" placeholder="0"></div>
         <div><label>Регистрации <span style="font-weight:400">(если форма не подключена к Тильде)</span></label><input type="number" id="eReg" placeholder="0"></div>
-        <div><label>Досидели до эфира <span style="font-weight:400">(если не Бизон)</span></label><input type="number" id="eAttend" placeholder="0"></div>
+        <div><label>Максимум зрителей <span style="font-weight:400">(если не Бизон)</span></label><input type="number" id="eAttend" placeholder="0"></div>
       </div>
       <label>Доп.продажи (апсейл), шт</label>
       <input type="number" id="eUpsell" placeholder="0">
@@ -440,7 +462,7 @@ function renderCursorLabel(){
 function combinedFor(funnel, gran){
   gran = gran || GRAN;
   const map = {};
-  function blank(k){ return {funnel, date:k, platform:"—", spend:0, clicks:0, registrations:0, regAuto:false, attended:0, attendedAuto:false, adsAuto:false, downstream:0, purchases:0, revenue:0}; }
+  function blank(k){ return {funnel, date:k, platform:"—", spend:0, clicks:0, registrations:0, regAuto:false, attended:0, attendedAuto:false, viewers:0, stayed:0, bizonDetail:false, adsAuto:false, downstream:0, purchases:0, revenue:0}; }
   DB.entries.filter(e=>e.funnel===funnel).forEach(e=>{
     const k = bucketKey(e.date, gran);
     if(!map[k]) map[k] = blank(k);
@@ -462,6 +484,7 @@ function combinedFor(funnel, gran){
     if(!map[k]) map[k] = blank(k);
     if(!map[k].attendedAuto){ map[k].attended = 0; map[k].attendedAuto = true; } // первый авто-ряд — сбросить ручное
     map[k].attended += Number(row.attended)||0;
+    if(row.viewers!=null){ map[k].viewers += Number(row.viewers)||0; map[k].stayed += Number(row.stayed)||0; map[k].bizonDetail = true; }
   });
   (META_RAW[funnel]||[]).forEach(row=>{
     const k = bucketKey(row.date, gran);
@@ -545,9 +568,9 @@ function renderOverview(){
   const roas = totalSpend>0 ? (totalRevenue/totalSpend) : 0;
 
   document.getElementById('ov-stats').innerHTML = `
-    <div class="stat"><div class="l">Расход</div><div class="v">${fmt(totalSpend)} ₸</div></div>
+    <div class="stat"><div class="l">Бюджет</div><div class="v">${fmt(Math.round(totalSpend))} ₸</div></div>
     <div class="stat"><div class="l">Выручка</div><div class="v green">${fmt(totalRevenue)} ₸</div></div>
-    <div class="stat"><div class="l">ROAS</div><div class="v ${roas>=1?'green':'red'}">×${roas.toFixed(2)}</div></div>
+    <div class="stat"><div class="l">ROAS</div><div class="v ${roas>=1?'green':'red'}">${totalSpend>0?'×'+roas.toFixed(2):'—'}</div></div>
     <div class="stat"><div class="l">Регистрации</div><div class="v">${fmt(totalReg)}</div></div>
   `;
 
@@ -563,16 +586,17 @@ function renderOverview(){
     document.getElementById('ov-rank').innerHTML = byFunnel.map((x,i)=>`
       <div class="rank">
         <div class="n">${i+1}</div>
-        <div class="f"><div class="nm">${x.f}</div><div class="sub">расход ${fmt(x.spend)} ₸ · ${pct(x.revenue/totalRev2)} от выручки</div></div>
-        <div class="amt">${fmt(x.revenue)} ₸<span class="sm">ROAS ×${(x.spend>0?x.revenue/x.spend:0).toFixed(2)}</span></div>
+        <div class="f"><div class="nm">${x.f}</div><div class="sub">бюджет ${fmt(Math.round(x.spend))} ₸ · ${x.spend? (x.revenue-x.spend>=0?'плюс ':'минус ')+fmt(Math.abs(Math.round(x.revenue-x.spend)))+' ₸ · ' : ''}${pct(x.revenue/totalRev2)} выручки</div></div>
+        <div class="amt">${fmt(x.revenue)} ₸<span class="sm">${x.spend>0?'ROAS ×'+(x.revenue/x.spend).toFixed(2):'бюджет не указан'}</span></div>
       </div>`).join('');
   }
 
   // health flags: сравнение последних 2 периодов на воронку по 4 конверсиям
   const stages = [
     ['reg/clicks', e=>rate(e.registrations,e.clicks), 'Клики → Регистрации'],
-    ['att/reg', e=>rate(e.attended,e.registrations), 'Регистрации → Досидели'],
-    ['pur/att', e=>rate(e.purchases,e.attended), 'Досидели → Покупки'],
+    ['vw/reg', e=>e.bizonDetail?rate(e.viewers,e.registrations):0, 'Регистрации → Пришли на вебинар'],
+    ['st/vw', e=>e.bizonDetail?rate(e.stayed,e.viewers):0, 'Пришли → Досидели до конца'],
+    ['pur/att', e=>rate(e.purchases,e.attended), 'Макс. зрителей → Покупки'],
     ['ups/pur', e=>rate(e.downstream,e.purchases), 'Покупки → Доп.продажи'],
   ];
   let flagsHtml='';
@@ -595,99 +619,159 @@ function renderOverview(){
 }
 
 /* ---------------- ВОРОНКИ ---------------- */
+function siteConv(e){ return e.clicks>0 && e.registrations>0 ? e.registrations/e.clicks : null; }
+function maxDate(rows){ return (rows||[]).reduce((m,r)=> r.date>m ? r.date : m, ''); }
+function ddmm(d){ return d ? d.slice(8,10)+"."+d.slice(5,7) : '—'; }
+
+/* Предупреждение, если автоматический источник давно не обновлялся — чтобы старые цифры
+   не принимались за текущие (Meta отвалилась 13.08 и месяц это никто не видел). */
+function freshnessNote(funnel){
+  const notes=[];
+  const stale = d => d && daysAgo(d) > 3;
+  const m = maxDate(META_RAW[funnel]);
+  if(m && stale(m)) notes.push(`расход и клики — только по <b>${ddmm(m)}</b> (Facebook закрыл доступ, нужно восстановить)`);
+  const t = maxDate(TILDA_RAW[funnel]);
+  if(t && stale(t)) notes.push(`регистрации — только по <b>${ddmm(t)}</b>`);
+  return notes.length ? `<div class="fresh">⚠️ Данные неполные: ${notes.join('; ')}. За более поздние периоды конверсия сайта и окупаемость будут неточными.</div>` : '';
+}
+
 function renderFunnelView(){
   renderCursorLabel();
   const arr = entriesFor(CUR_FUNNEL);
   const curKey = bucketKey(CURSOR, GRAN);
   const last = arr.find(e=>e.date===curKey);
+  document.getElementById('fn-fresh').innerHTML = freshnessNote(CUR_FUNNEL);
 
   if(!arr.length){
+    ['fn-kpis','fn-chart','fn-table','fn-influence'].forEach(id=>document.getElementById(id).innerHTML='');
     document.getElementById('fn-stages').innerHTML = '<div class="empty">Нет записей по этой воронке</div>';
-    document.getElementById('fn-chart').innerHTML = '';
-    document.getElementById('fn-table').innerHTML = '';
     return;
   }
   if(!last){
+    document.getElementById('fn-kpis').innerHTML = '';
     document.getElementById('fn-stages').innerHTML = '<div class="empty">За этот период данных нет — переключите стрелками вверху</div>';
   } else {
-    const stages = [
-      ['Клики', last.clicks],
+    const sc = siteConv(last);
+    const profit = last.revenue - last.spend;
+    const roas = last.spend>0 ? last.revenue/last.spend : 0;
+    document.getElementById('fn-kpis').innerHTML = `
+      <div class="kpi"><div class="l">Бюджет ушёл</div><div class="v">${fmt(Math.round(last.spend))} ₸</div><div class="s">${last.clicks?'клик ≈ '+fmt(Math.round(last.spend/last.clicks))+' ₸':''}</div></div>
+      <div class="kpi"><div class="l">Принесла</div><div class="v" style="color:var(--green)">${fmt(last.revenue)} ₸</div><div class="s">${fmt(last.purchases)} покупок</div></div>
+      <div class="kpi hl"><div class="l">Конверсия сайта</div><div class="v">${sc==null?'—':pct(sc)}</div><div class="s">клики → регистрации</div></div>
+      ${last.spend>0
+        ? `<div class="kpi"><div class="l">Окупаемость</div><div class="v" style="color:${profit>=0?'var(--green)':'var(--red)'}">×${roas.toFixed(2)}</div><div class="s">${profit>=0?'плюс ':'минус '}${fmt(Math.abs(Math.round(profit)))} ₸</div></div>`
+        : `<div class="kpi"><div class="l">Окупаемость</div><div class="v">—</div><div class="s">нет данных о бюджете</div></div>`}`;
+
+    // Основная цепочка. «Максимум одновременно» — справочно, в цепочку конверсий не входит.
+    const det = last.bizonDetail;
+    const chain = [
+      ['Клики по рекламе', last.clicks],
       ['Регистрации', last.registrations],
-      ['Досидели до эфира', last.attended],
+      ['Пришли на вебинар', det ? last.viewers : null, 'нет данных из Бизона за этот период'],
+      ['Досидели до конца', det ? last.stayed : null, 'нет данных из Бизона за этот период'],
       ['Покупки', last.purchases],
-      ['Доп.продажи', last.downstream],
     ];
-    const maxV = Math.max(1, ...stages.map(s=>s[1]||0));
-    let sHtml='';
-    stages.forEach((s,i)=>{
-      const w = Math.max(4, Math.round((s[1]||0)/maxV*100));
-      sHtml += `<div class="stage"><div class="lbl"><span>${s[0]}</span><b>${fmt(s[1])}</b></div><div class="bar"><i style="width:${w}%"></i></div></div>`;
-      if(i<stages.length-1){
-        const conv = rate(stages[i+1][1], s[1]);
-        sHtml += `<div class="conv">↓ ${pct(conv)}</div>`;
+    const maxV = Math.max(1, ...chain.map(s=>s[1]||0));
+    const bar = (lbl,v,na,side)=>{
+      const w = v==null ? 0 : Math.max(3, Math.round(v/maxV*100));
+      return `<div class="stage${side?' side':''}"><div class="lbl"><span>${lbl}</span><b>${v==null?'<span class="na">'+na+'</span>':fmt(v)}</b></div><div class="bar"><i style="width:${w}%"></i></div></div>`;
+    };
+    let h='';
+    chain.forEach((s,i)=>{
+      h += bar(s[0], s[1], s[2]);
+      if(i===2 && last.attended) h += bar('↳ максимум одновременно', last.attended, '', true);
+      if(i<chain.length-1){
+        const a=s[1], b=chain[i+1][1];
+        const c = (a>0 && b!=null) ? b/a : null;
+        h += i===0 ? `<div class="conv big">↓ конверсия сайта ${c==null?'—':pct(c)}</div>`
+                   : `<div class="conv">↓ ${c==null?'—':pct(c)}</div>`;
       }
     });
-    document.getElementById('fn-stages').innerHTML = sHtml;
+    h += `<div class="stage" style="margin-top:6px"><div class="lbl"><span>💰 Выручка</span><b style="color:var(--green)">${fmt(last.revenue)} ₸</b></div></div>`;
+    if(last.registrations>0 && last.spend>0) h += `<div class="conv" style="text-align:left">Регистрация стоит ≈ ${fmt(Math.round(last.spend/last.registrations))} ₸${last.purchases?' · покупка ≈ '+fmt(Math.round(last.spend/last.purchases))+' ₸':''}</div>`;
+    document.getElementById('fn-stages').innerHTML = h;
   }
 
-  document.getElementById('fn-chart').innerHTML = buildTrendChart(arr);
+  document.getElementById('fn-chart').innerHTML = buildConvChart(arr);
+  document.getElementById('fn-influence').innerHTML = buildInfluence(arr);
 
   // таблица
+  const cell = (e,v)=> e.bizonDetail ? fmt(v) : '—';
   let rows = arr.slice().reverse().map(e=>{
     const cpl = e.registrations>0 ? Math.round(e.spend/e.registrations) : 0;
     const roas = e.spend>0 ? (e.revenue/e.spend).toFixed(2) : '0.00';
-    return `<tr><td>${bucketLabel(e.date)}</td><td>${platBadge(e.platform)}</td><td>${fmt(e.spend)}</td><td>${fmt(e.clicks)}</td><td>${fmt(e.registrations)}</td><td>${fmt(e.attended)}</td><td>${fmt(e.purchases)}</td><td>${fmt(e.downstream)}</td><td>${fmt(e.revenue)}</td><td>${fmt(cpl)}</td><td>×${roas}</td></tr>`;
+    const sc = siteConv(e);
+    return `<tr><td>${bucketLabel(e.date)}</td><td>${fmt(Math.round(e.spend))}</td><td>${fmt(e.clicks)}</td><td>${fmt(e.registrations)}</td><td>${sc==null?'—':pct(sc)}</td><td>${cell(e,e.viewers)}</td><td>${fmt(e.attended)}</td><td>${cell(e,e.stayed)}</td><td>${fmt(e.purchases)}</td><td>${fmt(e.revenue)}</td><td>${fmt(cpl)}</td><td>×${roas}</td></tr>`;
   }).join('');
   document.getElementById('fn-table').innerHTML = `
-    <thead><tr><th>Дата</th><th>Плат.</th><th>Расход</th><th>Клики</th><th>Рег.</th><th>Досид.</th><th>Покуп.</th><th>Доп.</th><th>Выручка</th><th>CPL</th><th>ROAS</th></tr></thead>
-    <tbody>${rows || '<tr><td colspan="11" style="text-align:center;color:var(--muted)">Нет данных</td></tr>'}</tbody>`;
+    <thead><tr><th>Период</th><th>Бюджет</th><th>Клики</th><th>Рег.</th><th>Конв. сайта</th><th>Пришли</th><th>Макс.</th><th>До конца</th><th>Покуп.</th><th>Выручка</th><th>Цена рег.</th><th>ROAS</th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="12" style="text-align:center;color:var(--muted)">Нет данных</td></tr>'}</tbody>`;
 }
+
+/* График конверсии сайта (регистрации / клики) + отметки изменений из журнала */
+function buildConvChart(arr){
+  const pts = arr.filter(e=>siteConv(e)!=null);
+  if(pts.length<2) return '<div class="empty">Мало данных: нужны клики и регистрации хотя бы за 2 периода</div>';
+  const W=Math.max(320, pts.length*46), H=150, PAD=26;
+  const vals = pts.map(siteConv), maxV = Math.max(...vals)*1.1 || 1;
+  const stepX = (W-PAD*2)/(pts.length-1);
+  const X = i=>PAD+i*stepX, Y = v=>H-PAD-(v/maxV)*(H-PAD*2);
+  const d = pts.map((e,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(siteConv(e)).toFixed(1)).join(' ');
+  let marks='';
+  DB.changes.filter(c=>c.funnel===CUR_FUNNEL).forEach(c=>{
+    const k=bucketKey(c.date); const i=pts.findIndex(e=>e.date>=k);
+    if(i>=0) marks += `<line x1="${X(i)}" y1="${PAD-8}" x2="${X(i)}" y2="${H-PAD}" stroke="#b5860a" stroke-width="1.5" stroke-dasharray="3,3"/>`;
+  });
+  const every = Math.ceil(pts.length/6);
+  let labels='';
+  pts.forEach((e,i)=>{ if(i%every===0) labels += `<text x="${X(i)}" y="${H-6}" font-size="9" fill="#5f6b88" text-anchor="middle">${bucketLabel(e.date)}</text>`; });
+  const dots = pts.map((e,i)=>`<circle cx="${X(i)}" cy="${Y(siteConv(e))}" r="2.5" fill="#2f6fed"><title>${bucketLabel(e.date)}: ${pct(siteConv(e))}</title></circle>`).join('');
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${marks}
+    <text x="2" y="${PAD-12}" font-size="9" fill="#5f6b88">макс ${pct(maxV/1.1)}</text>
+    <path d="${d}" fill="none" stroke="#2f6fed" stroke-width="2"/>${dots}${labels}</svg>`;
+}
+
+/* «Что повлияло»: 1) записи журнала с конверсией до/после; 2) заметные скачки конверсии сайта,
+   рядом — что ещё поменялось одновременно (бюджет, цена клика). Без записи в журнале причину
+   скачка определить нельзя — тогда честно просим вспомнить, что меняли. */
+function buildInfluence(arr){
+  const out=[];
+  const idxOf = k => arr.findIndex(e=>e.date===k);
+  DB.changes.filter(c=>c.funnel===CUR_FUNNEL).sort((a,b)=>a.date<b.date?1:-1).slice(0,6).forEach(c=>{
+    const i = idxOf(bucketKey(c.date));
+    const before = i>0 ? siteConv(arr[i-1]) : null, after = i>=0 ? siteConv(arr[i]) : null;
+    let eff = '<span style="color:var(--muted)">не хватает данных, чтобы сравнить</span>';
+    if(before!=null && after!=null){
+      const up = after>=before;
+      eff = `<span style="color:${up?'var(--green)':'var(--red)'}">конверсия сайта ${pct(before)} → ${pct(after)} ${up?'↑':'↓'}</span>`;
+    }
+    out.push(`<div class="infl">🗒 <b>${escapeHtml(c.text)}</b><div class="d">${ddmm(c.date)} · ${eff}</div></div>`);
+  });
+  const jumps=[];
+  for(let i=1;i<arr.length;i++){
+    const a=siteConv(arr[i-1]), b=siteConv(arr[i]);
+    if(a==null || b==null) continue;
+    const delta=(b-a)/a;
+    if(Math.abs(delta)<0.25) continue;
+    const hasLog = DB.changes.some(c=>c.funnel===CUR_FUNNEL && bucketKey(c.date)===arr[i].date);
+    if(hasLog) continue;
+    const ctx=[];
+    const sp=arr[i-1].spend>0 ? (arr[i].spend-arr[i-1].spend)/arr[i-1].spend : 0;
+    if(Math.abs(sp)>=0.3) ctx.push(`бюджет ${sp>0?'вырос':'упал'} на ${pct(Math.abs(sp))}`);
+    const cpc0=arr[i-1].clicks?arr[i-1].spend/arr[i-1].clicks:0, cpc1=arr[i].clicks?arr[i].spend/arr[i].clicks:0;
+    if(cpc0 && Math.abs((cpc1-cpc0)/cpc0)>=0.3) ctx.push(`цена клика ${cpc1>cpc0?'выросла':'упала'} (${fmt(Math.round(cpc0))} → ${fmt(Math.round(cpc1))} ₸) — возможно, сменилась аудитория`);
+    jumps.push({e:arr[i], a, b, delta, ctx});
+  }
+  jumps.sort((x,y)=>y.e.date<x.e.date?-1:1).slice(0,5).forEach(j=>{
+    out.push(`<div class="infl">${j.delta>0?'📈':'📉'} <b>${bucketLabel(j.e.date)}: конверсия сайта ${pct(j.a)} → ${pct(j.b)}</b>
+      <div class="d">${j.ctx.length? 'Одновременно: '+j.ctx.join('; ')+'. ' : ''}В журнале записи нет — что меняли в рекламе или на сайте? Добавьте во вкладке «Внести», и в следующий раз будет видно, что сработало.</div></div>`);
+  });
+  return out.length ? out.join('') : '<div class="empty">Резких изменений конверсии нет. Записывайте изменения в журнал — здесь будет видно, как каждое повлияло</div>';
+}
+
 function platBadge(p){
   const cls = p==='Instagram'?'ig':(p==='TikTok'?'tt':'both');
   return `<span class="badge ${cls}">${p}</span>`;
-}
-
-function buildTrendChart(arr){
-  if(arr.length<2) return '<div class="empty">Нужно минимум 2 записи, чтобы построить график</div>';
-  const W=Math.max(320, arr.length*54), H=140, PAD=24;
-  const igPts = arr.map(e=>({date:e.date, cpl: (e.platform!=='TikTok' && e.registrations>0) ? e.spend/e.registrations : null}));
-  const ttPts = arr.map(e=>({date:e.date, cpl: (e.platform!=='Instagram' && e.platform!=='Оба' && e.registrations>0) ? e.spend/e.registrations : null}));
-  const allVals = arr.map(e=> e.registrations>0 ? e.spend/e.registrations : 0);
-  const maxV = Math.max(1, ...allVals);
-  const stepX = (W-PAD*2)/(arr.length-1);
-  function pathFor(getVal){
-    let d='', started=false;
-    arr.forEach((e,i)=>{
-      const v=getVal(e);
-      if(v==null){ started=false; return; }
-      const x=PAD+i*stepX, y=H-PAD-(v/maxV)*(H-PAD*2);
-      d += (started?' L':' M')+x.toFixed(1)+' '+y.toFixed(1);
-      started=true;
-    });
-    return d;
-  }
-  const igPath = pathFor(e=> e.platform!=='TikTok' && e.registrations>0 ? e.spend/e.registrations : null);
-  const ttPath = pathFor(e=> (e.platform==='TikTok') && e.registrations>0 ? e.spend/e.registrations : null);
-
-  let marks='';
-  DB.changes.filter(c=>c.funnel===CUR_FUNNEL).forEach(c=>{
-    let idx=-1, best=Infinity;
-    arr.forEach((e,i)=>{ const d=Math.abs(new Date(e.date)-new Date(c.date)); if(d<best){best=d; idx=i;} });
-    if(idx>=0){
-      const x=PAD+idx*stepX;
-      marks += `<line x1="${x}" y1="${PAD}" x2="${x}" y2="${H-PAD}" stroke="#b5860a" stroke-width="1.5" stroke-dasharray="3,3"/>`;
-    }
-  });
-
-  let axisLabels='';
-  arr.forEach((e,i)=>{ if(i%Math.ceil(arr.length/6||1)===0){ const x=PAD+i*stepX; axisLabels += `<text x="${x}" y="${H-4}" font-size="9" fill="#5f6b88" text-anchor="middle">${bucketLabel(e.date)}</text>`; } });
-
-  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-    ${marks}
-    <path d="${igPath}" fill="none" stroke="#c23b83" stroke-width="2"/>
-    <path d="${ttPath}" fill="none" stroke="#0f8a8a" stroke-width="2"/>
-    ${axisLabels}
-  </svg>`;
 }
 
 /* ---------------- ЖУРНАЛ ---------------- */
@@ -719,7 +803,8 @@ function renderLog(){
       const cplAfter = m.cur.registrations>0 ? Math.round(m.cur.spend/m.cur.registrations) : null;
       const parts = [
         deltaBadge('CPL', cplBefore, cplAfter, false),
-        deltaBadge('Досидели', m.prev.attended, m.cur.attended, true),
+        deltaBadge('Конв. сайта %', siteConv(m.prev)!=null?Math.round(siteConv(m.prev)*1000)/10:null, siteConv(m.cur)!=null?Math.round(siteConv(m.cur)*1000)/10:null, true),
+        deltaBadge('Макс. зрителей', m.prev.attended, m.cur.attended, true),
         deltaBadge('Выручка', m.prev.revenue, m.cur.revenue, true),
       ].filter(Boolean);
       cmp = parts.length
