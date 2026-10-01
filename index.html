@@ -299,7 +299,7 @@ const META_JSON_URL = "./meta-data.json";
 const TILDA_JSON_URL = "./tilda-data.json";
 function mapProductToFunnel(product){
   product = String(product||"");
-  if(product==="Стандарт" || product==="С куратором индивидуально") return "Вебинар";
+  if(product==="Стандарт" || product==="С куратором индивидуально" || product==="С Айнур индивидуально") return "Вебинар"; // «С Айнур» — подтверждено 2026-10-01
   if(product==="Интенсив") return "Интенсив";
   if(product==="Аденоиды") return "Аденоиды";
   if(product.indexOf("Вредные привычки")===0) return "Вредная привычка";
@@ -319,6 +319,9 @@ function mondayOf(dateStr){
 }
 
 let DB = { entries: [], changes: [] };
+/* Продукты без воронки (Годовая программа, Практикум для врачей, Дыши легко, ОИ 5000, Курс для взрослых…) —
+   тоже автоматически из ОП, отдельным блоком, чтобы общая выручка совпадала с мини-апом ОП. Подтверждено 2026-10-01. */
+let OTHER_SALES = [];    // [{date, product, amount}]
 let SALES_RAW = {};      // { funnel: [{date, amount}, ...] } — сырые продажи, группируются на лету
 let SALES_LOADED = false;
 let BIZON_AGG = {};      // { funnel: { weekStart: {attended} } } — из Бизон365, уже по неделям
@@ -386,12 +389,15 @@ function loadSales(){
     .then(r=>r.json())
     .then(j=>{
       const raw = {};
+      const other = [];
       (j.sales_rows||[]).forEach(row=>{
+        if(!row.date) return;
         const funnel = mapProductToFunnel(row.product);
-        if(!funnel || !row.date) return;
+        if(!funnel){ other.push({date:row.date, product:(p=>p.charAt(0).toUpperCase()+p.slice(1))(String(row.product||'Без названия').trim()), amount:Number(row.amount)||0}); return; }
         if(!raw[funnel]) raw[funnel]=[];
         raw[funnel].push({date:row.date, amount:Number(row.amount)||0});
       });
+      OTHER_SALES = other;
       SALES_RAW = raw; SALES_LOADED = true;
     })
     .catch(()=>{ SALES_LOADED = false; });
@@ -580,14 +586,18 @@ function renderOverview(){
   const inRange = allCombined().filter(e=> e.date===curKey);
 
   const totalSpend = sumField(inRange,'spend');
-  const totalRevenue = sumField(inRange,'revenue');
+  const otherIn = OTHER_SALES.filter(r=>bucketKey(r.date, GRAN)===curKey);
+  const otherRev = otherIn.reduce((t,r)=>t+r.amount,0);
+  const totalRevenue = sumField(inRange,'revenue') + otherRev;   // = как в мини-апе ОП
   const totalReg = sumField(inRange,'registrations');
-  const roas = totalSpend>0 ? (totalRevenue/totalSpend) : 0;
+  // ROAS — только по воронкам, где была реклама: органика (наставничество и т.п.) его завышала
+  const adRevenue = sumField(inRange.filter(e=>e.spend>0),'revenue');
+  const roas = totalSpend>0 ? (adRevenue/totalSpend) : 0;
 
   document.getElementById('ov-stats').innerHTML = `
     <div class="stat"><div class="l">Бюджет</div><div class="v">${fmt(Math.round(totalSpend))} ₸</div></div>
     <div class="stat"><div class="l">Выручка</div><div class="v green">${fmt(totalRevenue)} ₸</div></div>
-    <div class="stat"><div class="l">ROAS</div><div class="v ${roas>=1?'green':'red'}">${totalSpend>0?'×'+roas.toFixed(2):'—'}</div></div>
+    <div class="stat"><div class="l">ROAS рекламы</div><div class="v ${roas>=1?'green':'red'}">${totalSpend>0?'×'+roas.toFixed(2):'—'}</div></div>
     <div class="stat"><div class="l">Регистрации</div><div class="v">${fmt(totalReg)}</div></div>
   `;
 
@@ -595,7 +605,7 @@ function renderOverview(){
     const arr = inRange.filter(e=>e.funnel===f);
     return { f, spend: sumField(arr,'spend'), revenue: sumField(arr,'revenue') };
   }).sort((a,b)=>b.revenue-a.revenue);
-  const totalRev2 = byFunnel.reduce((s,x)=>s+x.revenue,0) || 1;
+  const totalRev2 = (byFunnel.reduce((s,x)=>s+x.revenue,0) + otherRev) || 1;
 
   if(totalRev2<=1 && !totalSpend){
     document.getElementById('ov-rank').innerHTML = '<div class="empty">За этот период данных нет — переключите период стрелками вверху или внесите запись</div>';
@@ -604,8 +614,8 @@ function renderOverview(){
       <div class="rank">
         <div class="n">${i+1}</div>
         <div class="f"><div class="nm">${x.f}</div><div class="sub">бюджет ${fmt(Math.round(x.spend))} ₸ · ${x.spend? (x.revenue-x.spend>=0?'плюс ':'минус ')+fmt(Math.abs(Math.round(x.revenue-x.spend)))+' ₸ · ' : ''}${pct(x.revenue/totalRev2)} выручки</div></div>
-        <div class="amt">${fmt(x.revenue)} ₸<span class="sm">${x.spend>0?'ROAS ×'+(x.revenue/x.spend).toFixed(2):'бюджет не указан'}</span></div>
-      </div>`).join('');
+        <div class="amt">${fmt(x.revenue)} ₸<span class="sm">${x.spend>0?'ROAS ×'+(x.revenue/x.spend).toFixed(2):'без рекламы'}</span></div>
+      </div>`).join('') + otherBlock(otherIn, totalRev2);
   }
 
   // health flags: сравнение последних 2 периодов на воронку по 4 конверсиям
@@ -633,6 +643,18 @@ function renderOverview(){
     });
   });
   document.getElementById('ov-flags').innerHTML = flagsHtml || '<div class="empty">Заметных изменений нет — всё стабильно</div>';
+}
+
+function otherBlock(rows, totalRev){
+  if(!rows.length) return '';
+  const by = {};
+  rows.forEach(r=>{ if(!by[r.product]) by[r.product]=[0,0]; by[r.product][0]+=r.amount; by[r.product][1]+=1; });
+  const list = Object.entries(by).sort((a,b)=>b[1][0]-a[1][0]);
+  const sum = rows.reduce((t,r)=>t+r.amount,0);
+  return `<div class="rank" style="margin-top:4px"><div class="n" style="background:#f1f3f8;color:var(--muted)">+</div>
+      <div class="f"><div class="nm">Без воронки</div><div class="sub">из отдела продаж · ${pct(sum/totalRev)} выручки</div></div>
+      <div class="amt">${fmt(sum)} ₸<span class="sm">${rows.length} продаж</span></div></div>` +
+    list.map(([p,[amt,n]])=>`<div class="rank" style="padding:5px 0 5px 32px; border-top:none"><div class="f"><div class="sub" style="color:var(--ink)">${escapeHtml(p)} · ${n} шт</div></div><div class="amt" style="font-size:12.5px; font-weight:700">${fmt(amt)} ₸</div></div>`).join('');
 }
 
 /* ---------------- ВОРОНКИ ---------------- */
