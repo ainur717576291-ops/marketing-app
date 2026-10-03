@@ -1,11 +1,15 @@
 {
   "source": "Tilda webhook (per-form registration events) + разовый бэкфилл из ручной таблицы (Вебинар, до 2026-08-17)",
-  "total_records": 1,
+  "total_records": 2,
   "raw": {
     "Вебинар": [
       {
         "date": "2026-10-03",
         "organic": true
+      },
+      {
+        "date": "2026-10-03",
+        "organic": false
       },
       {
         "date": "2026-09-03",
