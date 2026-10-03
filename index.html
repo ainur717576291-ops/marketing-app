@@ -502,16 +502,20 @@ function combinedFor(funnel, gran){
     map[k].attended += Number(row.attended)||0;
     if(row.viewers!=null){ map[k].viewers += Number(row.viewers)||0; map[k].stayed += Number(row.stayed)||0; map[k].bizonDetail = true; }
   });
-  // Регистрации: до конца ручной таблицы РНП (бэкфилл в tilda-data, недельные записи) — из неё,
-  // дальше — из Facebook (пиксель CompleteRegistration + лид-формы), иначе периоды задвоятся.
-  const tildaEnd = (()=>{ const m=maxDate(TILDA_RAW[funnel]); if(!m) return ''; const d=new Date(m+"T00:00:00"); d.setDate(d.getDate()+6); return ymdLocal(d); })();
+  // Регистрации, три источника по времени, чтобы ничего не задвоилось:
+  //   до конца таблицы РНП (бэкфилл в tilda-data — недельные записи с count) — таблица;
+  //   дальше, пока не пошли живые заявки с Тильды, — Facebook (только рекламные регистрации);
+  //   с первой живой заявки Тильды — Тильда (все регистрации: реклама + органика).
+  const tRows = TILDA_RAW[funnel]||[];
+  const tildaEnd = (()=>{ const m=maxDate(tRows.filter(r=>r.count!=null)); if(!m) return ''; const d=new Date(m+"T00:00:00"); d.setDate(d.getDate()+6); return ymdLocal(d); })();
+  const liveStart = tRows.filter(r=>r.count==null).reduce((m,r)=> !m || r.date<m ? r.date : m, '');
   (META_RAW[funnel]||[]).forEach(row=>{
     const k = bucketKey(row.date, gran);
     if(!map[k]) map[k] = blank(k);
     if(!map[k].adsAuto){ map[k].spend = 0; map[k].clicks = 0; map[k].adsAuto = true; } // первый авто-ряд — сбросить ручное
     map[k].spend += (Number(row.spend)||0) * USD_KZT;
     map[k].clicks += Number(row.clicks)||0;
-    if(row.registrations!=null && row.date > tildaEnd){
+    if(row.registrations!=null && row.date > tildaEnd && (!liveStart || row.date < liveStart)){
       if(!map[k].regAuto){ map[k].registrations = 0; map[k].regAuto = true; }
       map[k].registrations += Number(row.registrations)||0;
     }
