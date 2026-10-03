@@ -176,6 +176,7 @@
   <!-- ================= ОБЗОР ================= -->
   <div class="view active" id="view-overview">
     <div class="stat-row" id="ov-stats"></div>
+    <div id="ov-rate" style="font-size:12px; color:var(--muted); margin:-6px 0 14px; text-align:center"></div>
 
     <div class="card">
       <div class="sec-title">💰 Откуда реально идут деньги</div>
@@ -235,6 +236,17 @@
 
   <!-- ================= ВНЕСТИ ================= -->
   <div class="view" id="view-add">
+    <div class="card" id="rateCard">
+      <div class="sec-title">💵 Курс доллара</div>
+      <div style="font-size:12px; color:var(--muted); margin:-4px 0 6px">Реклама в Facebook оплачивается в $. По этому курсу бюджет переводится в тенге — для каждого месяца свой.</div>
+      <div class="grid2">
+        <div><label>Месяц</label><input type="month" id="rMonth"></div>
+        <div><label>1 $ = ₸</label><input type="number" id="rValue" inputmode="decimal" placeholder="например 472"></div>
+      </div>
+      <button class="btn" onclick="saveRate()">Сохранить курс</button>
+      <div class="msg" id="rMsg"></div>
+      <div id="rateList" style="margin-top:10px"></div>
+    </div>
     <div class="card">
       <div class="sec-title">➕ Недельная запись по воронке</div>
       <label>Воронка</label>
@@ -318,7 +330,7 @@ function mondayOf(dateStr){
   return ymdLocal(d);
 }
 
-let DB = { entries: [], changes: [] };
+let DB = { entries: [], changes: [], rates: {} };   // rates: { 'YYYY-MM': ₸ за $ } — вносит Айнур
 /* Продукты без воронки (Годовая программа, Практикум для врачей, Дыши легко, ОИ 5000, Курс для взрослых…) —
    тоже автоматически из ОП, отдельным блоком, чтобы общая выручка совпадала с мини-апом ОП. Подтверждено 2026-10-01. */
 let OTHER_SALES = [];    // [{date, product, amount}]
@@ -330,7 +342,14 @@ let META_RAW = {};       // { funnel: [{date, spend(USD), clicks}, ...] } — и
 let META_LOADED = false;
 let TILDA_RAW = {};      // { funnel: [{date}, ...] } — регистрации из вебхуков Tilda, по одной записи
 let TILDA_LOADED = false;
-const USD_KZT = 490;      // курс для перевода расхода Meta Ads (USD) в тенге — задан Айнурой 2026-08-13
+const USD_KZT = 490;      // курс по умолчанию, если за месяц (и раньше) курс не внесён — задан Айнурой 2026-08-13
+/* Курс $ на месяц: внесённый за этот месяц, иначе последний внесённый за более ранний месяц, иначе по умолчанию. */
+function rateFor(ym){
+  const r = DB.rates||{};
+  if(r[ym]) return Number(r[ym]);
+  const earlier = Object.keys(r).filter(k=>k<ym).sort().pop();
+  return earlier ? Number(r[earlier]) : USD_KZT;
+}
 let CUR_FUNNEL = FUNNELS[0];
 let GRAN = 'week';       // 'day' | 'week' | 'month' — текущая детализация
 let CURSOR = ymdLocal(new Date()); // выбранный конкретный день/неделя/месяц (любая дата внутри него)
@@ -363,7 +382,7 @@ function loadData(){
     .then(r=>r.json())
     .then(rows=>{
       if(rows && rows.length){
-        try{ const j=JSON.parse(rows[0].notes||"{}"); DB.entries=j.entries||[]; DB.changes=j.changes||[]; }catch(e){}
+        try{ const j=JSON.parse(rows[0].notes||"{}"); DB.entries=j.entries||[]; DB.changes=j.changes||[]; DB.rates=j.rates||{}; }catch(e){}
       } else {
         // строки ещё нет — создаём
         return fetch(SUPA_URL+"/rest/v1/students",{method:"POST",headers:sbHeaders({"Prefer":"return=minimal"}),
@@ -380,7 +399,7 @@ function loadData(){
 function persist(){
   return fetch(SUPA_URL+"/rest/v1/students?name=eq."+ROW_NAME,
     {method:"PATCH", headers:sbHeaders({"Prefer":"return=minimal"}),
-     body: JSON.stringify({notes: JSON.stringify({entries:DB.entries, changes:DB.changes})})});
+     body: JSON.stringify({notes: JSON.stringify({entries:DB.entries, changes:DB.changes, rates:DB.rates})})});
 }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
@@ -513,7 +532,7 @@ function combinedFor(funnel, gran){
     const k = bucketKey(row.date, gran);
     if(!map[k]) map[k] = blank(k);
     if(!map[k].adsAuto){ map[k].spend = 0; map[k].clicks = 0; map[k].adsAuto = true; } // первый авто-ряд — сбросить ручное
-    map[k].spend += (Number(row.spend)||0) * USD_KZT;
+    map[k].spend += (Number(row.spend)||0) * rateFor(row.date.slice(0,7));
     map[k].clicks += Number(row.clicks)||0;
     if(row.registrations!=null && row.date > tildaEnd && (!liveStart || row.date < liveStart)){
       if(!map[k].regAuto){ map[k].registrations = 0; map[k].regAuto = true; }
@@ -569,10 +588,11 @@ function boot(){
   const today=ymdLocal(new Date());
   document.getElementById('eDate').value=today;
   document.getElementById('cDate').value=today;
+  document.getElementById('rMonth').value=today.slice(0,7);
   loadData();
 }
 
-function renderAll(){ renderOverview(); renderFunnelView(); renderLog(); }
+function renderAll(){ renderOverview(); renderFunnelView(); renderLog(); renderRates(); }
 
 /* ---------------- ПОМОЩНИКИ ---------------- */
 function fmt(n){ n=Number(n)||0; return n.toLocaleString('ru-RU'); }
@@ -606,6 +626,9 @@ function renderOverview(){
     <div class="stat"><div class="l">Регистрации</div><div class="v">${fmt(totalReg)}</div></div>
   `;
 
+  const ym = CURSOR.slice(0,7), entered = !!(DB.rates||{})[ym];
+  document.getElementById('ov-rate').innerHTML = GRAN==='month' || GRAN==='week' || GRAN==='day'
+    ? `Курс $ за ${monthName(ym)}: <b>${fmt(rateFor(ym))} ₸</b>${entered?'':' (не внесён)'} · <a href="#" onclick="showView('add');return false">изменить</a>` : '';
   const byFunnel = FUNNELS.map(f=>{
     const arr = inRange.filter(e=>e.funnel===f);
     return { f, spend: sumField(arr,'spend'), revenue: sumField(arr,'revenue') };
@@ -866,6 +889,26 @@ function renderLog(){
   }).join('') : '<div class="empty">Записей пока нет — добавьте во вкладке «Внести»</div>';
 }
 function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+/* ---------------- КУРС $ ---------------- */
+const MONTHS_RU=["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
+function monthName(ym){ return MONTHS_RU[Number(ym.slice(5,7))-1]+" "+ym.slice(0,4); }
+function renderRates(){
+  const r=DB.rates||{}, keys=Object.keys(r).sort().reverse();
+  document.getElementById('rateList').innerHTML = keys.length
+    ? keys.map(k=>`<div class="flagrow"><div class="t"><b>${monthName(k)}</b></div><div style="font-weight:800">${fmt(r[k])} ₸</div><button class="btn ghost" style="width:auto;margin:0 0 0 8px;padding:4px 10px;font-size:12px" onclick="editRate('${k}')">✎</button></div>`).join('')
+    : `<div class="empty" style="padding:8px 0">Курс ещё не вносили — сейчас везде ${USD_KZT} ₸</div>`;
+}
+function editRate(k){ document.getElementById('rMonth').value=k; document.getElementById('rValue').value=DB.rates[k]; document.getElementById('rValue').focus(); }
+function saveRate(){
+  const ym=document.getElementById('rMonth').value, v=Number(String(document.getElementById('rValue').value).replace(',','.'));
+  if(!ym){ msgFor('rMsg','Выберите месяц', true); return; }
+  if(!(v>=100 && v<=2000)){ msgFor('rMsg','Проверьте курс — например 472', true); return; }
+  DB.rates = Object.assign({}, DB.rates||{}, {[ym]: v});
+  const m=document.getElementById('rMsg'); m.textContent='Сохраняю…'; m.className='msg';
+  persist().then(()=>{ msgFor('rMsg','Сохранено ✓ — бюджет за '+monthName(ym)+' пересчитан', false); renderRates(); renderAll(); })
+    .catch(()=>msgFor('rMsg','Ошибка сохранения, попробуйте ещё раз', true));
+}
 
 /* ---------------- ФОРМЫ ---------------- */
 function saveEntry(){
