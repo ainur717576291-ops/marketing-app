@@ -478,7 +478,7 @@ function renderCursorLabel(){
 function combinedFor(funnel, gran){
   gran = gran || GRAN;
   const map = {};
-  function blank(k){ return {funnel, date:k, platform:"—", spend:0, clicks:0, registrations:0, regAuto:false, attended:0, attendedAuto:false, viewers:0, stayed:0, bizonDetail:false, adsAuto:false, downstream:0, purchases:0, revenue:0}; }
+  function blank(k){ return {funnel, date:k, platform:"—", spend:0, clicks:0, registrations:0, regAuto:false, attended:0, attendedAuto:false, viewers:0, stayed:0, bizonDetail:false, organic:0, adsAuto:false, downstream:0, purchases:0, revenue:0}; }
   DB.entries.filter(e=>e.funnel===funnel).forEach(e=>{
     const k = bucketKey(e.date, gran);
     if(!map[k]) map[k] = blank(k);
@@ -525,6 +525,7 @@ function combinedFor(funnel, gran){
     if(!map[k]) map[k] = blank(k);
     if(!map[k].regAuto){ map[k].registrations = 0; map[k].regAuto = true; } // первый авто-ряд — сбросить ручное
     map[k].registrations += Number(row.count)||1; // count — для агрегированного бэкфилла, иначе 1 живая регистрация
+    if(row.organic) map[k].organic += 1;          // пришёл без рекламы (профиль Instagram, сторис, бот)
   });
   return Object.values(map).sort((a,b)=>a.date<b.date?-1:1);
 }
@@ -662,7 +663,8 @@ function otherBlock(rows, totalRev){
 }
 
 /* ---------------- ВОРОНКИ ---------------- */
-function siteConv(e){ return e.clicks>0 && e.registrations>0 ? e.registrations/e.clicks : null; }
+// Конверсия сайта = регистрации С РЕКЛАМЫ / клики по рекламе (органика из профиля/сторис кликов по рекламе не делала)
+function siteConv(e){ const r=e.registrations-(e.organic||0); return e.clicks>0 && r>0 ? r/e.clicks : null; }
 function maxDate(rows){ return (rows||[]).reduce((m,r)=> r.date>m ? r.date : m, ''); }
 function ddmm(d){ return d ? d.slice(8,10)+"."+d.slice(5,7) : '—'; }
 
@@ -720,12 +722,13 @@ function renderFunnelView(){
     let h='<div class="fnl">';
     chain.forEach((s,i)=>{
       const w=WIDTHS[i], wn=WIDTHS[i+1]||w-13, inset=((w-wn)/2/w*100).toFixed(2);
-      const extra = (i===2 && last.attended) ? `<div class="x">максимум одновременно ${fmt(last.attended)}</div>` : '';
+      const extra = (i===2 && last.attended) ? `<div class="x">максимум одновременно ${fmt(last.attended)}</div>`
+                  : (i===1 && last.organic) ? `<div class="x">из них без рекламы ${fmt(last.organic)} (${pct(last.organic/Math.max(1,last.registrations))})</div>` : '';
       h += `<div class="ly${s[1]==null?' na':''}" style="width:${w}%; background:${COLORS[i]}; clip-path:polygon(0 0,100% 0,${100-inset}% 100%,${inset}% 100%)">
         <div class="t">${s[0]}</div><div class="n">${s[1]==null?s[2]:fmt(s[1])}</div>${extra}</div>`;
       if(i<chain.length-1){
         const a=s[1], b2=chain[i+1][1];
-        const c = (a>0 && b2!=null) ? b2/a : null;
+        const c = i===0 ? siteConv(last) : ((a>0 && b2!=null) ? b2/a : null);
         h += `<div class="cv${i===0?' big':''}">↓ ${c==null?'—':pct(c)}${i===0?' конверсия сайта':''}</div>`;
       }
     });
