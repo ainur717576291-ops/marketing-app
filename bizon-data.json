@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-10-03T19:27:06Z",
+  "generated_at": "2026-10-04T19:27:06Z",
   "source": "Bizon365 API (webinars/reports/getlist), по сессиям",
   "note": "attended = единовременный максимум зрителей сеанса; viewers = всего уникальных зрителей; stayed = были в комнате в последние 5 мин эфира (досидели до конца). Регистрации в Бизоне не ведутся (они на Тильде)",
   "total_sessions_seen": 1321,
-  "unmapped_sessions": 88,
+  "unmapped_sessions": 89,
   "raw": {
     "Вебинар": [
       {
@@ -4832,10 +4832,6 @@
       },
       {
         "date": "2026-09-20",
-        "attended": 0
-      },
-      {
-        "date": "2026-09-19",
         "attended": 0
       },
       {
