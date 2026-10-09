@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-08T19:33:46Z",
+  "generated_at": "2026-10-09T19:33:48Z",
   "source": "Meta Marketing API (campaign-level daily insights), 2 рекламных кабинета",
   "note": "spend в USD (валюта кабинетов); clicks = клики по ссылке; registrations = Вебинар: CompleteRegistration + лид-формы FB, Интенсив: lead; неподписанные кампании по умолчанию отнесены к Вебинар (подтверждено 2026-08-13)",
   "total_rows_seen": 1012,
