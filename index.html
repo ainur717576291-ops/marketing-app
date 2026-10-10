@@ -770,7 +770,7 @@ function renderFunnelView(){
     chain.forEach((s,i)=>{
       const w=WIDTHS[i], wn=WIDTHS[i+1]||w-13, inset=((w-wn)/2/w*100).toFixed(2);
       const extra = (i===2 && last.attended) ? `<div class="x">максимум одновременно ${fmt(last.attended)}</div>`
-                  : (i===1 && last.organic) ? `<div class="x">из них без рекламы ${fmt(last.organic)} (${pct(last.organic/Math.max(1,last.registrations))})</div>` : '';
+                  : (i===1 && last.registrations) ? `<div class="x">📣 с рекламы: <b>${fmt(last.registrations-(last.organic||0))}</b> · 📱 с блога: <b>${fmt(last.organic||0)}</b></div>` : '';
       h += `<div class="ly${s[1]==null?' na':''}" style="width:${w}%; background:${COLORS[i]}; clip-path:polygon(0 0,100% 0,${100-inset}% 100%,${inset}% 100%)">
         <div class="t">${s[0]}</div><div class="n">${s[1]==null?s[2]:fmt(s[1])}</div>${extra}</div>`;
       if(i<chain.length-1){
