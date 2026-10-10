@@ -340,6 +340,7 @@ let BIZON_AGG = {};      // { funnel: { weekStart: {attended} } } — из Би�
 let BIZON_LOADED = false;
 let META_RAW = {};       // { funnel: [{date, spend(USD), clicks}, ...] } — из Meta Ads, по дням
 let META_LOADED = false;
+let META_GEN = '';        // дата последней успешной выгрузки из Facebook (generated_at) — отличает «сбой связи» от «реклама на паузе»
 let TILDA_RAW = {};      // { funnel: [{date}, ...] } — регистрации из вебхуков Tilda, по одной записи
 let TILDA_LOADED = false;
 const USD_KZT = 490;      // курс по умолчанию, если за месяц (и раньше) курс не внесён — задан Айнурой 2026-08-13
@@ -432,7 +433,7 @@ function loadBizon(){
 function loadMeta(){
   return fetch(META_JSON_URL, {cache:"no-store"})
     .then(r=>r.json())
-    .then(j=>{ META_RAW = j.raw || {}; META_LOADED = true; })
+    .then(j=>{ META_RAW = j.raw || {}; META_GEN = (j.generated_at||'').slice(0,10); META_LOADED = true; })
     .catch(()=>{ META_LOADED = false; });
 }
 
@@ -694,13 +695,21 @@ function ddmm(d){ return d ? d.slice(8,10)+"."+d.slice(5,7) : '—'; }
 /* Предупреждение, если автоматический источник давно не обновлялся — чтобы старые цифры
    не принимались за текущие (Meta отвалилась 13.08 и месяц это никто не видел). */
 function freshnessNote(funnel){
-  const notes=[];
+  const warn=[], info=[];
   const stale = d => d && daysAgo(d) > 3;
+  // Связь с Facebook сломана, только если сама выгрузка давно не обновлялась.
+  // Если выгрузка свежая, а последних дней с расходом нет — значит, реклама просто на паузе.
   const m = maxDate(META_RAW[funnel]);
-  if(m && stale(m)) notes.push(`расход и клики — только по <b>${ddmm(m)}</b> (Facebook закрыл доступ, нужно восстановить)`);
+  if(META_GEN && daysAgo(META_GEN) > 2) warn.push(`Facebook не отдаёт данные с <b>${ddmm(META_GEN)}</b> — нужно проверить связь`);
+  else if(m && stale(m)) info.push(`реклама не крутится с <b>${ddmm(m)}</b> (в Facebook нет расхода — кампании на паузе)`);
+  // Регистрации: если Тильда уже присылает заявки в реальном времени, тишина = просто нет заявок.
+  const tLive = (TILDA_RAW[funnel]||[]).some(r=>r.count==null);
   const t = [maxDate(TILDA_RAW[funnel]), maxDate((META_RAW[funnel]||[]).filter(r=>r.registrations!=null))].sort().pop();
-  if(t && stale(t)) notes.push(`регистрации — только по <b>${ddmm(t)}</b>`);
-  return notes.length ? `<div class="fresh">⚠️ Данные неполные: ${notes.join('; ')}. За более поздние периоды конверсия сайта и окупаемость будут неточными.</div>` : '';
+  if(!tLive && t && stale(t)) warn.push(`регистрации — только по <b>${ddmm(t)}</b>`);
+  let h='';
+  if(warn.length) h += `<div class="fresh">⚠️ Данные неполные: ${warn.join('; ')}. За более поздние периоды конверсия сайта и окупаемость будут неточными.</div>`;
+  if(info.length) h += `<div class="fresh" style="background:var(--blue-bg);color:var(--blue)">ℹ️ ${info.join('; ')}. Данные с Facebook обновляются нормально.</div>`;
+  return h;
 }
 
 function renderFunnelView(){
