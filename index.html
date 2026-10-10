@@ -540,12 +540,27 @@ function combinedFor(funnel, gran){
       map[k].registrations += Number(row.registrations)||0;
     }
   });
-  (TILDA_RAW[funnel]||[]).forEach(row=>{
+  // Бэкфилл РНП (недельные записи с count) — как есть.
+  tRows.filter(r=>r.count!=null).forEach(row=>{
     const k = bucketKey(row.date, gran);
     if(!map[k]) map[k] = blank(k);
-    if(!map[k].regAuto){ map[k].registrations = 0; map[k].regAuto = true; } // первый авто-ряд — сбросить ручное
-    map[k].registrations += Number(row.count)||1; // count — для агрегированного бэкфилла, иначе 1 живая регистрация
-    if(row.organic) map[k].organic += 1;          // пришёл без рекламы (профиль Instagram, сторис, бот)
+    if(!map[k].regAuto){ map[k].registrations = 0; map[k].regAuto = true; }
+    map[k].registrations += Number(row.count)||0;
+  });
+  // С момента живых заявок Тильды — по дням берём БОЛЬШЕЕ из двух:
+  //   Тильда (все заявки)  или  Facebook (рекламные) + органика из Тильды.
+  // Так день, когда вебхук терял заявки (3–7.10.2026 — сервер «зависал»), не проваливается,
+  // а обычные дни не задваиваются (Тильда уже включает рекламные заявки).
+  const tDay = {}, fDay = {};
+  tRows.filter(r=>r.count==null).forEach(r=>{ const d=tDay[r.date]||(tDay[r.date]={all:0,org:0}); d.all++; if(r.organic) d.org++; });
+  (META_RAW[funnel]||[]).forEach(r=>{ if(r.registrations!=null && liveStart && r.date>=liveStart) fDay[r.date]=(fDay[r.date]||0)+(Number(r.registrations)||0); });
+  new Set([...Object.keys(tDay), ...Object.keys(fDay)]).forEach(date=>{
+    const t = tDay[date]||{all:0,org:0}, f = fDay[date]||0;
+    const k = bucketKey(date, gran);
+    if(!map[k]) map[k] = blank(k);
+    if(!map[k].regAuto){ map[k].registrations = 0; map[k].regAuto = true; }
+    map[k].registrations += Math.max(t.all, f + t.org);
+    map[k].organic += t.org;   // пришёл без рекламы (профиль Instagram, сторис, бот)
   });
   return Object.values(map).sort((a,b)=>a.date<b.date?-1:1);
 }
@@ -761,7 +776,9 @@ function renderFunnelView(){
       if(i<chain.length-1){
         const a=s[1], b2=chain[i+1][1];
         const c = i===0 ? siteConv(last) : ((a>0 && b2!=null) ? b2/a : null);
-        h += `<div class="cv${i===0?' big':''}">↓ ${c==null?'—':pct(c)}${i===0?' конверсия сайта':''}</div>`;
+        // больше 100% бывает, когда на эфир пришли и те, кто регистрировался в прошлом периоде — процент тут бессмыслен
+        const ct = c==null ? '—' : (c>1 ? '— <span style="font-weight:400">(на эфир пришли и те, кто регистрировался раньше)</span>' : pct(c));
+        h += `<div class="cv${i===0?' big':''}">↓ ${ct}${i===0?' конверсия сайта':''}</div>`;
       }
     });
     h += `<div class="out">💰 ${fmt(last.revenue)} ₸<small>выручка${last.spend>0?' · бюджет '+fmt(Math.round(last.spend))+' ₸':''}</small></div></div>`;
