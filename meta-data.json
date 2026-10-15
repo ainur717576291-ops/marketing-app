@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-14T19:33:51Z",
+  "generated_at": "2026-10-15T19:33:39Z",
   "source": "Meta Marketing API (campaign-level daily insights), 2 рекламных кабинета",
   "note": "spend в USD (валюта кабинетов); clicks = клики по ссылке; registrations = Вебинар: CompleteRegistration + лид-формы FB, Интенсив: lead; неподписанные кампании по умолчанию отнесены к Вебинар (подтверждено 2026-08-13)",
-  "total_rows_seen": 1047,
+  "total_rows_seen": 1053,
   "raw": {
     "Вебинар": [
       {
@@ -6363,14 +6363,14 @@
       },
       {
         "date": "2026-10-14",
-        "spend": 33.07,
-        "clicks": 81,
+        "spend": 33.21,
+        "clicks": 82,
         "registrations": 8,
         "landing": 4
       },
       {
         "date": "2026-10-14",
-        "spend": 30.84,
+        "spend": 30.89,
         "clicks": 161,
         "registrations": 11,
         "landing": 10
@@ -6384,17 +6384,59 @@
       },
       {
         "date": "2026-10-14",
-        "spend": 32.56,
+        "spend": 32.58,
         "clicks": 167,
         "registrations": 2,
         "landing": 1
       },
       {
         "date": "2026-10-14",
-        "spend": 66.93,
+        "spend": 66.95,
         "clicks": 441,
         "registrations": 113,
         "landing": 371
+      },
+      {
+        "date": "2026-10-15",
+        "spend": 0.0,
+        "clicks": 0,
+        "registrations": 0,
+        "landing": 0
+      },
+      {
+        "date": "2026-10-15",
+        "spend": 5.26,
+        "clicks": 13,
+        "registrations": 0,
+        "landing": 2
+      },
+      {
+        "date": "2026-10-15",
+        "spend": 10.22,
+        "clicks": 39,
+        "registrations": 6,
+        "landing": 3
+      },
+      {
+        "date": "2026-10-15",
+        "spend": 12.07,
+        "clicks": 58,
+        "registrations": 10,
+        "landing": 7
+      },
+      {
+        "date": "2026-10-15",
+        "spend": 68.77,
+        "clicks": 108,
+        "registrations": 25,
+        "landing": 16
+      },
+      {
+        "date": "2026-10-15",
+        "spend": 33.06,
+        "clicks": 246,
+        "registrations": 93,
+        "landing": 213
       }
     ],
     "Интенсив": [
