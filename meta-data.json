@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-21T19:33:50Z",
+  "generated_at": "2026-10-22T19:33:43Z",
   "source": "Meta Marketing API (campaign-level daily insights), 2 рекламных кабинета",
   "note": "spend в USD (валюта кабинетов); clicks = клики по ссылке; registrations = Вебинар: CompleteRegistration + лид-формы FB, Интенсив: lead; неподписанные кампании по умолчанию отнесены к Вебинар (подтверждено 2026-08-13)",
-  "total_rows_seen": 1090,
+  "total_rows_seen": 1094,
   "raw": {
     "Вебинар": [
       {
@@ -6594,7 +6594,7 @@
       },
       {
         "date": "2026-10-21",
-        "spend": 70.24,
+        "spend": 70.49,
         "clicks": 74,
         "registrations": 0,
         "landing": 1
@@ -6615,17 +6615,31 @@
       },
       {
         "date": "2026-10-21",
-        "spend": 89.76,
+        "spend": 89.8,
         "clicks": 154,
         "registrations": 37,
         "landing": 19
       },
       {
         "date": "2026-10-21",
-        "spend": 50.14,
+        "spend": 50.18,
         "clicks": 457,
         "registrations": 95,
         "landing": 388
+      },
+      {
+        "date": "2026-10-22",
+        "spend": 56.71,
+        "clicks": 69,
+        "registrations": 2,
+        "landing": 3
+      },
+      {
+        "date": "2026-10-22",
+        "spend": 67.25,
+        "clicks": 93,
+        "registrations": 22,
+        "landing": 14
       },
       {
         "date": "2026-10-20",
@@ -6643,10 +6657,10 @@
       },
       {
         "date": "2026-10-21",
-        "spend": 29.64,
+        "spend": 29.7,
         "clicks": 71,
         "registrations": 5,
-        "landing": 60
+        "landing": 61
       },
       {
         "date": "2026-10-21",
@@ -6654,6 +6668,13 @@
         "clicks": 11,
         "registrations": 1,
         "landing": 11
+      },
+      {
+        "date": "2026-10-22",
+        "spend": 62.03,
+        "clicks": 180,
+        "registrations": 31,
+        "landing": 140
       }
     ],
     "Интенсив": [
@@ -7632,9 +7653,16 @@
       },
       {
         "date": "2026-10-21",
-        "spend": 12.13,
+        "spend": 12.14,
         "clicks": 27,
         "registrations": 6,
+        "landing": 0
+      },
+      {
+        "date": "2026-10-22",
+        "spend": 9.59,
+        "clicks": 27,
+        "registrations": 2,
         "landing": 0
       }
     ]
