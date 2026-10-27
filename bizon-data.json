@@ -1,11 +1,17 @@
 {
-  "generated_at": "2026-10-26T19:27:06Z",
+  "generated_at": "2026-10-27T19:27:06Z",
   "source": "Bizon365 API (webinars/reports/getlist), по сессиям",
   "note": "attended = единовременный максимум зрителей сеанса; viewers = всего уникальных зрителей; stayed = были в комнате в последние 5 мин эфира (досидели до конца). Регистрации в Бизоне не ведутся (они на Тильде)",
   "total_sessions_seen": 1340,
-  "unmapped_sessions": 90,
+  "unmapped_sessions": 91,
   "raw": {
     "Интенсив": [
+      {
+        "date": "2026-10-27",
+        "attended": 5,
+        "viewers": 7,
+        "stayed": 5
+      },
       {
         "date": "2026-10-26",
         "attended": 5,
@@ -60,14 +66,6 @@
       },
       {
         "date": "2026-10-13",
-        "attended": 0
-      },
-      {
-        "date": "2026-10-12",
-        "attended": 0
-      },
-      {
-        "date": "2026-10-12",
         "attended": 0
       },
       {
