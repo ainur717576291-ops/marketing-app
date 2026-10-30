@@ -1,11 +1,17 @@
 {
-  "generated_at": "2026-10-29T19:27:06Z",
+  "generated_at": "2026-10-30T19:27:07Z",
   "source": "Bizon365 API (webinars/reports/getlist), по сессиям",
   "note": "attended = единовременный максимум зрителей сеанса; viewers = всего уникальных зрителей; stayed = были в комнате в последние 5 мин эфира (досидели до конца). Регистрации в Бизоне не ведутся (они на Тильде)",
-  "total_sessions_seen": 1340,
-  "unmapped_sessions": 91,
+  "total_sessions_seen": 1342,
+  "unmapped_sessions": 92,
   "raw": {
     "Вебинар": [
+      {
+        "date": "2026-10-30",
+        "attended": 12,
+        "viewers": 25,
+        "stayed": 8
+      },
       {
         "date": "2026-10-29",
         "attended": 52,
@@ -4835,6 +4841,12 @@
     ],
     "Вредная привычка": [
       {
+        "date": "2026-10-30",
+        "attended": 7,
+        "viewers": 11,
+        "stayed": 4
+      },
+      {
         "date": "2026-10-29",
         "attended": 45,
         "viewers": 98,
@@ -4934,10 +4946,6 @@
       },
       {
         "date": "2026-10-16",
-        "attended": 0
-      },
-      {
-        "date": "2026-10-15",
         "attended": 0
       },
       {
