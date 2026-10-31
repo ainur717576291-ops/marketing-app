@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-30T19:35:27Z",
+  "generated_at": "2026-10-31T15:05:21Z",
   "source": "Meta Marketing API (campaign-level daily insights), 2 рекламных кабинета",
   "note": "spend в USD (валюта кабинетов); clicks = клики по ссылке; registrations = Вебинар: CompleteRegistration + лид-формы FB, Интенсив: lead; неподписанные кампании по умолчанию отнесены к Вебинар (подтверждено 2026-08-13)",
-  "total_rows_seen": 1114,
+  "total_rows_seen": 1116,
   "raw": {
     "Вебинар": [
       {
@@ -6692,10 +6692,17 @@
       },
       {
         "date": "2026-10-30",
-        "spend": 41.63,
+        "spend": 41.86,
         "clicks": 34,
         "registrations": 0,
         "landing": 0
+      },
+      {
+        "date": "2026-10-31",
+        "spend": 36.52,
+        "clicks": 39,
+        "registrations": 1,
+        "landing": 3
       },
       {
         "date": "2026-10-20",
@@ -6783,10 +6790,17 @@
       },
       {
         "date": "2026-10-30",
-        "spend": 50.57,
+        "spend": 50.59,
         "clicks": 175,
         "registrations": 13,
-        "landing": 136
+        "landing": 139
+      },
+      {
+        "date": "2026-10-31",
+        "spend": 40.46,
+        "clicks": 134,
+        "registrations": 11,
+        "landing": 99
       }
     ],
     "Интенсив": [
