@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-03T19:33:59Z",
+  "generated_at": "2026-11-04T19:34:33Z",
   "source": "Meta Marketing API (campaign-level daily insights), 2 рекламных кабинета",
   "note": "spend в USD (валюта кабинетов); clicks = клики по ссылке; registrations = Вебинар: CompleteRegistration + лид-формы FB, Интенсив: lead; неподписанные кампании по умолчанию отнесены к Вебинар (подтверждено 2026-08-13)",
-  "total_rows_seen": 1128,
+  "total_rows_seen": 1135,
   "raw": {
     "Вебинар": [
       {
@@ -6754,6 +6754,41 @@
         "landing": 0
       },
       {
+        "date": "2026-11-04",
+        "spend": 28.22,
+        "clicks": 14,
+        "registrations": 0,
+        "landing": 0
+      },
+      {
+        "date": "2026-11-04",
+        "spend": 9.72,
+        "clicks": 21,
+        "registrations": 0,
+        "landing": 2
+      },
+      {
+        "date": "2026-11-04",
+        "spend": 145.3,
+        "clicks": 203,
+        "registrations": 47,
+        "landing": 36
+      },
+      {
+        "date": "2026-11-04",
+        "spend": 60.48,
+        "clicks": 283,
+        "registrations": 5,
+        "landing": 18
+      },
+      {
+        "date": "2026-11-04",
+        "spend": 8.43,
+        "clicks": 47,
+        "registrations": 0,
+        "landing": 0
+      },
+      {
         "date": "2026-10-20",
         "spend": 9.22,
         "clicks": 15,
@@ -6864,6 +6899,13 @@
         "clicks": 63,
         "registrations": 3,
         "landing": 52
+      },
+      {
+        "date": "2026-11-04",
+        "spend": 75.94,
+        "clicks": 242,
+        "registrations": 31,
+        "landing": 183
       }
     ],
     "Интенсив": [
@@ -7898,10 +7940,17 @@
       },
       {
         "date": "2026-11-03",
-        "spend": 14.99,
+        "spend": 15.0,
         "clicks": 34,
         "registrations": 5,
         "landing": 0
+      },
+      {
+        "date": "2026-11-04",
+        "spend": 17.4,
+        "clicks": 38,
+        "registrations": 8,
+        "landing": 1
       }
     ]
   }
