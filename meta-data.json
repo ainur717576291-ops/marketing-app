@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-08T19:33:40Z",
+  "generated_at": "2026-11-09T19:33:50Z",
   "source": "Meta Marketing API (campaign-level daily insights), 2 рекламных кабинета",
   "note": "spend в USD (валюта кабинетов); clicks = клики по ссылке; registrations = Вебинар: CompleteRegistration + лид-формы FB, Интенсив: lead; неподписанные кампании по умолчанию отнесены к Вебинар (подтверждено 2026-08-13)",
-  "total_rows_seen": 1159,
+  "total_rows_seen": 1164,
   "raw": {
     "Вебинар": [
       {
@@ -6881,7 +6881,7 @@
       },
       {
         "date": "2026-11-08",
-        "spend": 9.52,
+        "spend": 9.53,
         "clicks": 21,
         "registrations": 0,
         "landing": 2
@@ -6897,6 +6897,27 @@
         "date": "2026-11-08",
         "spend": 13.05,
         "clicks": 28,
+        "registrations": 0,
+        "landing": 0
+      },
+      {
+        "date": "2026-11-09",
+        "spend": 0.0,
+        "clicks": 0,
+        "registrations": 0,
+        "landing": 0
+      },
+      {
+        "date": "2026-11-09",
+        "spend": 43.92,
+        "clicks": 170,
+        "registrations": 1,
+        "landing": 19
+      },
+      {
+        "date": "2026-11-09",
+        "spend": 8.2,
+        "clicks": 30,
         "registrations": 0,
         "landing": 0
       },
@@ -7042,10 +7063,17 @@
       },
       {
         "date": "2026-11-08",
-        "spend": 80.41,
+        "spend": 80.54,
         "clicks": 166,
-        "registrations": 15,
-        "landing": 129
+        "registrations": 16,
+        "landing": 131
+      },
+      {
+        "date": "2026-11-09",
+        "spend": 70.0,
+        "clicks": 147,
+        "registrations": 14,
+        "landing": 113
       }
     ],
     "Интенсив": [
@@ -8115,6 +8143,13 @@
       },
       {
         "date": "2026-11-08",
+        "spend": 0.0,
+        "clicks": 0,
+        "registrations": 0,
+        "landing": 0
+      },
+      {
+        "date": "2026-11-09",
         "spend": 0.0,
         "clicks": 0,
         "registrations": 0,
