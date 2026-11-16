@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-15T19:33:39Z",
+  "generated_at": "2026-11-16T19:33:48Z",
   "source": "Meta Marketing API (campaign-level daily insights), 2 рекламных кабинета",
   "note": "spend в USD (валюта кабинетов); clicks = клики по ссылке; registrations = Вебинар: CompleteRegistration + лид-формы FB, Интенсив: lead; неподписанные кампании по умолчанию отнесены к Вебинар (подтверждено 2026-08-13)",
-  "total_rows_seen": 1189,
+  "total_rows_seen": 1194,
   "raw": {
     "Вебинар": [
       {
@@ -7049,7 +7049,7 @@
       },
       {
         "date": "2026-11-15",
-        "spend": 13.95,
+        "spend": 14.01,
         "clicks": 38,
         "registrations": 0,
         "landing": 2
@@ -7059,6 +7059,27 @@
         "spend": 0.0,
         "clicks": 0,
         "registrations": 1,
+        "landing": 0
+      },
+      {
+        "date": "2026-11-16",
+        "spend": 34.24,
+        "clicks": 14,
+        "registrations": 0,
+        "landing": 0
+      },
+      {
+        "date": "2026-11-16",
+        "spend": 12.94,
+        "clicks": 38,
+        "registrations": 0,
+        "landing": 0
+      },
+      {
+        "date": "2026-11-16",
+        "spend": 0.0,
+        "clicks": 0,
+        "registrations": 0,
         "landing": 0
       },
       {
@@ -7238,10 +7259,17 @@
       },
       {
         "date": "2026-11-15",
-        "spend": 29.24,
+        "spend": 29.29,
+        "clicks": 82,
+        "registrations": 8,
+        "landing": 68
+      },
+      {
+        "date": "2026-11-16",
+        "spend": 29.09,
         "clicks": 81,
-        "registrations": 7,
-        "landing": 66
+        "registrations": 3,
+        "landing": 69
       }
     ],
     "Интенсив": [
@@ -8325,10 +8353,17 @@
       },
       {
         "date": "2026-11-15",
-        "spend": 15.42,
+        "spend": 15.43,
         "clicks": 52,
         "registrations": 6,
         "landing": 1
+      },
+      {
+        "date": "2026-11-16",
+        "spend": 13.66,
+        "clicks": 30,
+        "registrations": 2,
+        "landing": 0
       }
     ]
   }
