@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-16T19:33:48Z",
+  "generated_at": "2026-11-17T19:33:44Z",
   "source": "Meta Marketing API (campaign-level daily insights), 2 рекламных кабинета",
   "note": "spend в USD (валюта кабинетов); clicks = клики по ссылке; registrations = Вебинар: CompleteRegistration + лид-формы FB, Интенсив: lead; неподписанные кампании по умолчанию отнесены к Вебинар (подтверждено 2026-08-13)",
-  "total_rows_seen": 1194,
+  "total_rows_seen": 1200,
   "raw": {
     "Вебинар": [
       {
@@ -7063,14 +7063,14 @@
       },
       {
         "date": "2026-11-16",
-        "spend": 34.24,
+        "spend": 34.25,
         "clicks": 14,
         "registrations": 0,
         "landing": 0
       },
       {
         "date": "2026-11-16",
-        "spend": 12.94,
+        "spend": 12.96,
         "clicks": 38,
         "registrations": 0,
         "landing": 0
@@ -7079,6 +7079,41 @@
         "date": "2026-11-16",
         "spend": 0.0,
         "clicks": 0,
+        "registrations": 0,
+        "landing": 0
+      },
+      {
+        "date": "2026-11-17",
+        "spend": 33.32,
+        "clicks": 34,
+        "registrations": 0,
+        "landing": 3
+      },
+      {
+        "date": "2026-11-17",
+        "spend": 4.85,
+        "clicks": 10,
+        "registrations": 2,
+        "landing": 0
+      },
+      {
+        "date": "2026-11-17",
+        "spend": 18.34,
+        "clicks": 27,
+        "registrations": 3,
+        "landing": 1
+      },
+      {
+        "date": "2026-11-17",
+        "spend": 4.5,
+        "clicks": 45,
+        "registrations": 8,
+        "landing": 34
+      },
+      {
+        "date": "2026-11-17",
+        "spend": 4.61,
+        "clicks": 13,
         "registrations": 0,
         "landing": 0
       },
@@ -7270,6 +7305,13 @@
         "clicks": 81,
         "registrations": 3,
         "landing": 69
+      },
+      {
+        "date": "2026-11-17",
+        "spend": 13.28,
+        "clicks": 49,
+        "registrations": 3,
+        "landing": 33
       }
     ],
     "Интенсив": [
