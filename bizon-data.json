@@ -1,10 +1,72 @@
 {
-  "generated_at": "2026-11-23T19:27:06Z",
+  "generated_at": "2026-11-24T19:27:06Z",
   "source": "Bizon365 API (webinars/reports/getlist), по сессиям",
   "note": "attended = единовременный максимум зрителей сеанса; viewers = всего уникальных зрителей; stayed = были в комнате в последние 5 мин эфира (досидели до конца). Регистрации в Бизоне не ведутся (они на Тильде)",
-  "total_sessions_seen": 1356,
+  "total_sessions_seen": 1357,
   "unmapped_sessions": 93,
   "raw": {
+    "Вредная привычка": [
+      {
+        "date": "2026-11-24",
+        "attended": 21,
+        "viewers": 42,
+        "stayed": 12
+      },
+      {
+        "date": "2026-10-30",
+        "attended": 7,
+        "viewers": 11,
+        "stayed": 4
+      },
+      {
+        "date": "2026-10-29",
+        "attended": 45,
+        "viewers": 98,
+        "stayed": 26
+      },
+      {
+        "date": "2026-08-11",
+        "attended": 10,
+        "viewers": 23,
+        "stayed": 1
+      },
+      {
+        "date": "2026-07-23",
+        "attended": 1,
+        "viewers": 1,
+        "stayed": 1
+      },
+      {
+        "date": "2026-07-07",
+        "attended": 12,
+        "viewers": 25,
+        "stayed": 3
+      },
+      {
+        "date": "2026-06-17",
+        "attended": 16
+      },
+      {
+        "date": "2026-05-26",
+        "attended": 27
+      },
+      {
+        "date": "2026-05-15",
+        "attended": 14
+      },
+      {
+        "date": "2026-05-13",
+        "attended": 31
+      },
+      {
+        "date": "2025-06-30",
+        "attended": 35
+      },
+      {
+        "date": "2025-05-22",
+        "attended": 52
+      }
+    ],
     "Вебинар": [
       {
         "date": "2026-11-20",
@@ -5189,62 +5251,6 @@
       {
         "date": "2026-06-30",
         "attended": 4
-      }
-    ],
-    "Вредная привычка": [
-      {
-        "date": "2026-10-30",
-        "attended": 7,
-        "viewers": 11,
-        "stayed": 4
-      },
-      {
-        "date": "2026-10-29",
-        "attended": 45,
-        "viewers": 98,
-        "stayed": 26
-      },
-      {
-        "date": "2026-08-11",
-        "attended": 10,
-        "viewers": 23,
-        "stayed": 1
-      },
-      {
-        "date": "2026-07-23",
-        "attended": 1,
-        "viewers": 1,
-        "stayed": 1
-      },
-      {
-        "date": "2026-07-07",
-        "attended": 12,
-        "viewers": 25,
-        "stayed": 3
-      },
-      {
-        "date": "2026-06-17",
-        "attended": 16
-      },
-      {
-        "date": "2026-05-26",
-        "attended": 27
-      },
-      {
-        "date": "2026-05-15",
-        "attended": 14
-      },
-      {
-        "date": "2026-05-13",
-        "attended": 31
-      },
-      {
-        "date": "2025-06-30",
-        "attended": 35
-      },
-      {
-        "date": "2025-05-22",
-        "attended": 52
       }
     ],
     "Детская ортодонтия": [
